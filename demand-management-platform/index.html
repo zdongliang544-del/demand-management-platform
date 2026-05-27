@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分销团队需求管理平台</title>
+    <script src="config.js"></script>
+    <script src="https://unpkg.com/@cloudbase/js-sdk"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --info: #0284c7;
+            --info-light: #e0f2fe;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --sidebar-width: 220px;
+            --radius: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--gray-100); color: var(--gray-800); font-size: 14px; line-height: 1.5; }
+        input, select, textarea, button { font-family: inherit; font-size: inherit; }
+
+        /* Login */
+        .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .login-overlay.hidden { display: none; }
+        .login-card { background: white; border-radius: 16px; padding: 48px 40px; width: 420px; max-width: 90vw; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .login-card h1 { text-align: center; font-size: 22px; font-weight: 700; color: var(--gray-900); margin-bottom: 8px; }
+        .login-card .subtitle { text-align: center; color: var(--gray-500); margin-bottom: 32px; font-size: 14px; }
+
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; color: var(--gray-700); margin-bottom: 4px; font-size: 13px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 13px; transition: border-color 0.2s, box-shadow 0.2s; background: white; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: white; color: var(--gray-700); border: 1px solid var(--gray-300); }
+        .btn-secondary:hover { background: var(--gray-50); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* Layout */
+        .app-layout { display: none; }
+        .app-layout.active { display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: var(--gray-900); color: white; position: fixed; top: 0; left: 0; bottom: 0; display: flex; flex-direction: column; z-index: 100; }
+        .sidebar-header { padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-header h2 { font-size: 15px; font-weight: 700; }
+        .sidebar-header .workspace-badge { display: inline-block; background: var(--primary); color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 6px; }
+        .sidebar-header .user-info { font-size: 11px; color: var(--gray-400); margin-top: 4px; }
+        .sidebar-nav { flex: 1; padding: 8px 0; }
+        .sidebar-nav a { display: flex; align-items: center; padding: 10px 16px; color: var(--gray-400); text-decoration: none; font-size: 13px; transition: all 0.2s; cursor: pointer; gap: 8px; }
+        .sidebar-nav a:hover { background: rgba(255,255,255,0.08); color: white; }
+        .sidebar-nav a.active { background: var(--primary); color: white; }
+        .sidebar-nav .nav-section { padding: 8px 16px 4px; font-size: 11px; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px; }
+        .sidebar-footer { padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.1); }
+        .sidebar-footer a { display: flex; align-items: center; gap: 6px; color: var(--gray-400); text-decoration: none; font-size: 12px; cursor: pointer; }
+        .sidebar-footer a:hover { color: white; }
+        .main-content { margin-left: var(--sidebar-width); flex: 1; }
+        .page-header { background: white; padding: 12px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+        .page-header h1 { font-size: 16px; font-weight: 700; }
+        .page-header-actions { display: flex; gap: 8px; }
+        .page-body { padding: 20px; }
+
+        /* Cards */
+        .card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 16px; }
+        .card-header { padding: 12px 16px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+        .card-header h3 { font-size: 14px; font-weight: 600; }
+        .card-body { padding: 16px; }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-card { background: white; border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: center; }
+        .stat-card .stat-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .stat-card .stat-label { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+
+        /* Filter */
+        .filter-bar { background: white; border-radius: var(--radius); padding: 12px 16px; box-shadow: var(--shadow); margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+        .filter-item { display: flex; flex-direction: column; gap: 3px; }
+        .filter-item label { font-size: 11px; font-weight: 600; color: var(--gray-600); }
+        .filter-item select, .filter-item input { padding: 6px 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; min-width: 100px; }
+
+        /* Table */
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        table th { background: var(--gray-50); font-weight: 600; font-size: 11px; text-transform: uppercase; color: var(--gray-600); padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--gray-200); white-space: nowrap; }
+        table td { padding: 8px 10px; border-bottom: 1px solid var(--gray-100); font-size: 12px; vertical-align: middle; }
+        table tr:hover { background: var(--gray-50); }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+        .badge-p0 { background: #fee2e2; color: #dc2626; }
+        .badge-p1 { background: #fef3c7; color: #d97706; }
+        .badge-p2 { background: #d1fae5; color: #059669; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-review { background: #e0e7ff; color: #3730a3; }
+        .badge-dev { background: #dbeafe; color: #1e40af; }
+        .badge-test { background: #f3e8ff; color: #6b21a8; }
+        .badge-released { background: #d1fae5; color: #065f46; }
+        .badge-closed { background: #f3f4f6; color: #374151; }
+        .badge-suspended { background: #fef3c7; color: #92400e; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: white; border-radius: 12px; width: 800px; max-width: 90vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); transform: translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.active .modal { transform: translateY(0); }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 1; border-radius: 12px 12px 0 0; }
+        .modal-header h2 { font-size: 16px; font-weight: 700; }
+        .modal-close { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: none; background: none; cursor: pointer; font-size: 18px; color: var(--gray-400); border-radius: 4px; }
+        .modal-close:hover { background: var(--gray-100); }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 12px 20px; border-top: 1px solid var(--gray-200); display: flex; justify-content: flex-end; gap: 8px; position: sticky; bottom: 0; background: white; border-radius: 0 0 12px 12px; }
+
+        /* Form Grid */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-grid .full-width { grid-column: 1 / -1; }
+        .form-grid textarea { resize: vertical; min-height: 60px; }
+
+        /* Multi-select - Checkbox group style */
+        .multi-select { border: 1px solid var(--gray-300); border-radius: 6px; padding: 8px; background: white; }
+        .multi-select:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .multi-select-options { display: flex; flex-wrap: wrap; gap: 6px; }
+        .multi-select-item { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--gray-200); border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s; user-select: none; }
+        .multi-select-item:hover { border-color: var(--primary); background: var(--gray-50); }
+        .multi-select-item.selected { background: var(--primary); color: white; border-color: var(--primary); }
+        .multi-select-item input { display: none; }
+        .multi-select-item .check { width: 14px; height: 14px; border: 1px solid var(--gray-300); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .multi-select-item.selected .check { background: white; color: var(--primary); border-color: white; }
+        .multi-select-item:not(.selected) .check { background: white; }
+        .multi-select-hint { font-size: 10px; color: var(--gray-400); margin-top: 4px; }
+
+        /* Checkbox Group */
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; padding-top: 4px; }
+        .checkbox-group label { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 400; cursor: pointer; }
+
+        /* Action Buttons */
+        .action-btns { display: flex; gap: 2px; }
+        .action-btn { padding: 3px 6px; border: none; background: none; cursor: pointer; border-radius: 4px; font-size: 11px; color: var(--gray-500); transition: all 0.2s; }
+        .action-btn:hover { background: var(--gray-100); color: var(--gray-700); }
+        .action-btn.edit { color: var(--primary); }
+        .action-btn.edit:hover { background: var(--primary-light); }
+        .action-btn.review { color: var(--success); }
+        .action-btn.review:hover { background: var(--success-light); }
+        .action-btn.delete { color: var(--danger); }
+        .action-btn.delete:hover { background: var(--danger-light); }
+
+        /* Toast */
+        .toast { position: fixed; top: 20px; right: 20px; padding: 10px 16px; border-radius: 6px; color: white; font-weight: 600; font-size: 13px; z-index: 9999; transform: translateX(120%); transition: transform 0.3s; box-shadow: var(--shadow-lg); }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--info); }
+
+        /* Empty */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--gray-400); }
+        .empty-state .icon { font-size: 40px; margin-bottom: 8px; }
+        .empty-state p { margin-bottom: 12px; }
+        .empty-state .btn { margin-top: 8px; }
+
+        /* Loading */
+        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 9998; }
+        .loading-overlay.hidden { display: none; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid var(--gray-200); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Content preview */
+        .content-preview { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Chart */
+        .chart-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .chart-bar-label { width: 80px; font-size: 11px; color: var(--gray-600); text-align: right; flex-shrink: 0; }
+        .chart-bar-track { flex: 1; background: var(--gray-100); border-radius: 4px; height: 20px; overflow: hidden; }
+        .chart-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; justify-content: center; min-width: 20px; }
+        .chart-bar-fill span { color: white; font-size: 10px; font-weight: 600; }
+
+        /* Review section */
+        .review-section { background: var(--gray-50); border: 1px dashed var(--gray-300); border-radius: var(--radius); padding: 12px; margin-top: 12px; }
+        .review-section h4 { font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 10px; }
+
+        /* Detail */
+        .detail-grid { display: grid; grid-template-columns: 120px 1fr; gap: 6px 12px; font-size: 12px; }
+        .detail-label { color: var(--gray-500); font-weight: 500; }
+        .detail-value { color: var(--gray-800); }
+
+        /* Review item */
+        .review-item { border: 1px solid var(--gray-200); border-radius: 6px; padding: 12px; margin-bottom: 10px; }
+        .review-item-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 11px; color: var(--gray-500); }
+        .review-item-content { font-size: 12px; color: var(--gray-700); }
+
+        /* Release list */
+        .release-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; margin-bottom: 6px; }
+        .release-item-title { font-size: 12px; font-weight: 600; flex: 1; }
+        .release-item-meta { font-size: 11px; color: var(--gray-500); }
+    </style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+<div id="loadingOverlay" class="loading-overlay hidden"><div class="loading-spinner"></div></div>
+
+<!-- LOGIN -->
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+        <h1>分销团队需求管理平台</h1>
+        <p class="subtitle">请使用账号密码登录</p>
+        <form id="loginForm" onsubmit="return handleLogin(event)">
+            <div class="form-group">
+                <label>用户名</label>
+                <input type="text" id="loginUsername" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+                <label>密码</label>
+                <input type="password" id="loginPassword" placeholder="请输入密码" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%">登 录</button>
+        </form>
+        <p style="text-align:center;margin-top:16px;font-size:11px;color:var(--gray-400)">账号有效期：登录后2个月</p>
+    </div>
+</div>
+
+<!-- APP LAYOUT -->
+<div id="appLayout" class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>需求管理平台</h2>
+            <div class="workspace-badge">📱 手机分销</div>
+            <div class="user-info" id="sidebarUserInfo"></div>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">工作区</div>
+            <a id="navList" class="active" onclick="switchPage('list')">
+                <span>📋</span> 需求列表
+            </a>
+            <a id="navStats" onclick="switchPage('stats')">
+                <span>📊</span> 需求统计
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a onclick="handleLogout()">🚪 退出登录</a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <!-- 需求列表页 -->
+        <div id="pageList" class="page-section">
+            <div class="page-header">
+                <h1>需求列表</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button>
+                    <button class="btn btn-secondary btn-sm" onclick="exportToExcel()">📥 导出Excel</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>搜索标题</label>
+                        <input type="text" id="filterSearch" placeholder="输入关键词搜索" style="min-width:150px;">
+                    </div>
+                    <div class="filter-item">
+                        <label>上线时间</label>
+                        <input type="month" id="filterLaunchMonth">
+                    </div>
+                    <div class="filter-item">
+                        <label>预期时间</label>
+                        <input type="month" id="filterExpectMonth">
+                    </div>
+                    <div class="filter-item">
+                        <label>已应用国家</label>
+                        <select id="filterAppliedCountry"><option value="">全部</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select>
+                    </div>
+                    <div class="filter-item">
+                        <label>需要应用国家</label>
+                        <select id="filterNeedCountry"><option value="">全部</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select>
+                    </div>
+                    <div class="filter-item">
+                        <label>当前状态</label>
+                        <select id="filterStatus"><option value="">全部</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select>
+                    </div>
+                    <div class="filter-item">
+                        <label>是否审查</label>
+                        <select id="filterNeedReview"><option value="">全部</option><option value="是">是</option><option value="否">否</option></select>
+                    </div>
+                    <div class="filter-item">
+                        <label>产品PM</label>
+                        <select id="filterPM"><option value="">全部</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option></select>
+                    </div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="applyListFilter()">筛选</button></div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="resetListFilter()">重置</button></div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr>
+                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>审查人</th><th>操作</th>
+                                </tr></thead>
+                                <tbody id="demandTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="emptyState" class="empty-state"><div class="icon">📭</div><p>暂无需求数据</p><button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 需求统计页 -->
+        <div id="pageStats" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>需求统计</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="switchPage('list')">← 返回列表</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="filter-bar">
+                    <div class="filter-item"><label>上线时间</label><input type="month" id="statFilterLaunch"></div>
+                    <div class="filter-item"><label>预期时间</label><input type="month" id="statFilterExpect"></div>
+                    <div class="filter-item"><label>已应用国家</label><select id="statFilterApplied"><option value="">全部</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
+                    <div class="filter-item"><label>需要应用国家</label><select id="statFilterNeed"><option value="">全部</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
+                    <div class="filter-item"><label>当前状态</label><select id="statFilterStatus"><option value="">全部</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="挂起">挂起</option></select></div>
+                    <div class="filter-item"><label>产品PM</label><select id="statFilterPM"><option value="">全部</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option></select></div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="updateStats()">统计</button></div>
+                </div>
+                <div class="stats-grid" id="statsCards">
+                    <div class="stat-card"><div class="stat-value" id="statTotal">0</div><div class="stat-label">总需求数</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statPending" style="color:var(--warning)">0</div><div class="stat-label">待确认</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statReviewing" style="color:var(--info)">0</div><div class="stat-label">待评审</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statDev" style="color:#3b82f6">0</div><div class="stat-label">开发中</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statTesting" style="color:#8b5cf6">0</div><div class="stat-label">测试中</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statReleased" style="color:var(--success)">0</div><div class="stat-label">已发布</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statSuspended" style="color:#d97706">0</div><div class="stat-label">挂起</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                    <div class="card"><div class="card-header"><h3>按模块分布</h3></div><div class="card-body"><div id="moduleBreakdown"></div></div></div>
+                    <div class="card"><div class="card-header"><h3>按类型分布</h3></div><div class="card-body"><div id="typeBreakdown"></div></div></div>
+                    <div class="card"><div class="card-header"><h3>按国家分布</h3></div><div class="card-body"><div id="countryBreakdown"></div></div></div>
+                </div>
+                <div class="card" style="margin-top:16px;"><div class="card-header"><h3>📋 上线清单</h3></div><div class="card-body" id="releaseList"><div class="empty-state"><p>暂无已发布需求</p></div></div></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- DETAIL MODAL -->
+<div id="detailModal" class="modal-overlay" onclick="if(event.target===this)closeDetailModal()">
+    <div class="modal">
+        <div class="modal-header"><h2 id="detailTitle">需求详情</h2><button class="modal-close" onclick="closeDetailModal()">&times;</button></div>
+        <div class="modal-body" id="detailBody"></div>
+        <div class="modal-footer"><button class="btn btn-secondary btn-sm" onclick="closeDetailModal()">关闭</button></div>
+    </div>
+</div>
+
+<!-- CREATE/EDIT MODAL -->
+<div id="createModal" class="modal-overlay" onclick="if(event.target===this)closeCreateModal()">
+    <div class="modal" style="width:860px;">
+        <div class="modal-header"><h2 id="createModalTitle">新建需求</h2><button class="modal-close" onclick="closeCreateModal()">&times;</button></div>
+        <div class="modal-body">
+            <form id="demandForm" onsubmit="return handleDemandSubmit(event)">
+                <input type="hidden" id="editDemandId" value="">
+                <div class="form-grid">
+                    <div class="form-group"><label>类型 <span style="color:var(--danger)">*</span></label><select id="fieldType" required><option value="">请选择</option><option value="平台">平台</option><option value="业务">业务</option></select></div>
+                    <div class="form-group"><label>端 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msPlatform"></div></div>
+                    <div class="form-group"><label>角色 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msRole"></div></div>
+                    <div class="form-group"><label>关联模块 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msModule"></div></div>
+                    <div class="form-group"><label>已应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msAppliedCountry"></div></div>
+                    <div class="form-group"><label>需要应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msNeedCountry"></div></div>
+                    <div class="form-group full-width"><label>需求标题 <span style="color:var(--danger)">*</span></label><input type="text" id="fieldTitle" maxlength="30" placeholder="限制30字" required><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="titleCharCount">0</span>/30</div></div>
+                    <div class="form-group full-width"><label>需求内容 <span style="color:var(--danger)">*</span></label><textarea id="fieldContent" rows="3" placeholder="可输入文本、链接或图片地址" required></textarea></div>
+                    <div class="form-group full-width"><label>需求价值</label><textarea id="fieldValue" rows="2" maxlength="100" placeholder="描述该需求的业务价值，限制100字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="valueCharCount">0</span>/100</div></div>
+                    <div class="form-group"><label>需求提出国家</label><div class="multi-select" id="msProposerCountry"></div></div>
+                    <div class="form-group"><label>需求提出人</label><input type="text" id="fieldProposerName" placeholder="提出人姓名"></div>
+                    <div class="form-group"><label>登记信息</label><input type="text" id="fieldRegInfo" readonly style="background:var(--gray-50)"></div>
+                    <div class="form-group"><label>业务预期时间</label><input type="date" id="fieldExpectDate"></div>
+                    <div class="form-group"><label>上线时间</label><input type="date" id="fieldLaunchDate"></div>
+                    <div class="form-group"><label>当前状态 <span style="color:var(--danger)">*</span></label><select id="fieldStatus" required><option value="">请选择</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select></div>
+                    <div class="form-group"><label>优先级 <span style="color:var(--danger)">*</span></label><select id="fieldPriority" required><option value="">请选择</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></div>
+                    <div class="form-group"><label>能力形式</label><select id="fieldCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
+                    <div class="form-group full-width"><label>产品PM <span style="color:var(--danger)">*</span></label><div class="checkbox-group"><label><input type="checkbox" name="fieldPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="fieldPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="fieldPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="fieldPM" value="李思开"> 李思开</label><label><input type="checkbox" name="fieldPM" value="孙佳俊"> 孙佳俊</label></div></div>
+                    <div class="form-group"><label>是否需要审查</label><select id="fieldNeedReview" onchange="handleNeedReviewChange()"><option value="否">否</option><option value="是">是</option></select></div>
+                    <div class="form-group"><label>文档地址</label><input type="text" id="fieldDocUrl" placeholder="可输入文本或链接"></div>
+                    <div class="form-group full-width"><label>备注</label><textarea id="fieldRemark" rows="2" maxlength="200" placeholder="限制200字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="remarkCharCount">0</span>/200</div></div>
+                </div>
+                <div id="reviewSectionInForm" class="review-section" style="display:none;">
+                    <h4>审查建议</h4>
+                    <div class="form-grid">
+                        <div class="form-group"><label>能力形式（复核）</label><select id="fieldReviewCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
+                        <div class="form-group"><label>关联模块（复核）</label><select id="fieldReviewModule"><option value="">请选择</option><option value="全部">全部</option><option value="金融模式">金融模式</option><option value="进件">进件</option><option value="佣金">佣金</option><option value="商品">商品</option><option value="结算">结算</option><option value="风控">风控</option><option value="订单">订单</option><option value="考培">考培</option><option value="数据看板">数据看板</option><option value="基础模块">基础模块</option><option value="广告">广告</option><option value="消息">消息</option><option value="催收">催收</option><option value="其他">其他</option></select></div>
+                        <div class="form-group"><label>需要应用国家（复核）</label><select id="fieldReviewNeedCountry"><option value="">请选择</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
+                        <div class="form-group full-width"><label>产品PM（复核）</label><div class="checkbox-group"><label><input type="checkbox" name="fieldReviewPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="fieldReviewPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="fieldReviewPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="fieldReviewPM" value="李思开"> 李思开</label><label><input type="checkbox" name="fieldReviewPM" value="孙佳俊"> 孙佳俊</label></div></div>
+                        <div class="form-group full-width"><label>审查建议 <span style="color:var(--danger)">*</span></label><textarea id="fieldReviewContent" rows="2" maxlength="200" placeholder="限制200字"></textarea></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" onclick="closeCreateModal()">取消</button>
+            <button class="btn btn-primary btn-sm" id="submitBtn" onclick="document.getElementById('demandForm').requestSubmit()">提交需求</button>
+        </div>
+    </div>
+</div>
+
+<!-- REVIEW MODAL -->
+<div id="reviewModal" class="modal-overlay" onclick="if(event.target===this)closeReviewModal()">
+    <div class="modal" style="width:600px;">
+        <div class="modal-header"><h2>审查建议</h2><button class="modal-close" onclick="closeReviewModal()">&times;</button></div>
+        <div class="modal-body">
+            <form id="reviewForm" onsubmit="return handleReviewSubmit(event)">
+                <input type="hidden" id="reviewDemandId">
+                <div class="form-grid">
+                    <div class="form-group"><label>能力形式（复核）</label><select id="reviewCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
+                    <div class="form-group"><label>关联模块（复核）</label><select id="reviewModule"><option value="">请选择</option><option value="全部">全部</option><option value="金融模式">金融模式</option><option value="进件">进件</option><option value="佣金">佣金</option><option value="商品">商品</option><option value="结算">结算</option><option value="风控">风控</option><option value="订单">订单</option><option value="考培">考培</option><option value="数据看板">数据看板</option><option value="基础模块">基础模块</option><option value="广告">广告</option><option value="消息">消息</option><option value="催收">催收</option><option value="其他">其他</option></select></div>
+                    <div class="form-group"><label>需要应用国家（复核）</label><select id="reviewNeedCountry"><option value="">请选择</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
+                    <div class="form-group full-width"><label>产品PM（复核）</label><div class="checkbox-group"><label><input type="checkbox" name="reviewPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="reviewPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="reviewPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="reviewPM" value="李思开"> 李思开</label><label><input type="checkbox" name="reviewPM" value="孙佳俊"> 孙佳俊</label></div></div>
+                    <div class="form-group full-width"><label>审查建议 <span style="color:var(--danger)">*</span></label><textarea id="reviewContent" rows="2" maxlength="200" placeholder="限制200字" required></textarea></div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" onclick="closeReviewModal()">取消</button>
+            <button class="btn btn-success btn-sm" onclick="document.getElementById('reviewForm').requestSubmit()">提交</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==================== CONSTANTS ====================
+const USERS = {
+    'zhuli': { name: '朱黎', role: '组长', password: '123456' },
+    'zhangdongliang': { name: '张栋良', role: '组员', password: '123456' },
+    'pengchengshuo': { name: '彭程硕', role: '组员', password: '123456' },
+    'lisikai': { name: '李思开', role: '组员', password: '123456' },
+    'sunjiajun': { name: '孙佳俊', role: '组员', password: '123456' },
+    'lvshaojun': { name: '吕少俊', role: '组长', password: '123456' }
+};
+const COUNTRY_REGION = { '全部': '全部', '巴基斯坦': '南亚', '孟加拉': '南亚', '乌干达': '东非', '坦桑尼亚': '东非', '尼日利亚': '西非', '布基纳法索': '西非', '菲律宾': '东南亚' };
+const STORAGE_KEY_DEMANDS = 'demand_mgmt_demands';
+const STORAGE_KEY_REVIEWS = 'demand_mgmt_reviews';
+const STORAGE_KEY_SESSION = 'demand_mgmt_session';
+let currentUser = null;
+let editingDemandId = null;
+
+// ==================== MULTI-SELECT ====================
+const MULTI_SELECT_OPTIONS = {
+    platform: ['APP', 'KILI', 'Web'],
+    role: ['全部', '职能体系', '分销体系'],
+    module: ['全部', '金融模式', '进件', '佣金', '商品', '结算', '风控', '订单', '考培', '数据看板', '基础模块', '广告', '消息', '催收', '其他'],
+    country: ['无', '全部', '巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索'],
+    proposerCountry: ['巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索']
+};
+
+function initMultiSelect(containerId, options, selectedValues = []) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    const selected = new Set(selectedValues);
+
+    function render() {
+        container.innerHTML = '';
+        const optionsDiv = document.createElement('div');
+        optionsDiv.className = 'multi-select-options';
+
+        options.forEach(opt => {
+            const item = document.createElement('label');
+            item.className = 'multi-select-item' + (selected.has(opt) ? ' selected' : '');
+            item.innerHTML = `<input type="checkbox" ${selected.has(opt) ? 'checked' : ''}><span class="check">${selected.has(opt) ? '✓' : ''}</span>${opt}`;
+            item.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (selected.has(opt)) {
+                    selected.delete(opt);
+                } else {
+                    selected.add(opt);
+                }
+                render();
+            };
+            optionsDiv.appendChild(item);
+        });
+
+        container.appendChild(optionsDiv);
+    }
+
+    // 存储选择状态到容器上
+    container._selected = selected;
+    container._options = options;
+    render();
+}
+
+function getMultiSelectValues(containerId) {
+    const container = document.getElementById(containerId);
+    if (container._selected) {
+        return Array.from(container._selected);
+    }
+    // Fallback: 从DOM中读取选中状态
+    const selected = [];
+    container.querySelectorAll('.multi-select-item.selected').forEach(item => {
+        const text = item.textContent.trim();
+        if (text) selected.push(text);
+    });
+    return selected;
+}
+
+// ==================== SESSION ====================
+function checkSession() {
+    const session = JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION) || 'null');
+    if (session && session.expiry > Date.now()) { currentUser = session.user; showApp(); return true; }
+    return false;
+}
+function saveSession(user) {
+    localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify({ user, expiry: Date.now() + 60 * 24 * 60 * 60 * 1000 }));
+}
+function clearSession() { localStorage.removeItem(STORAGE_KEY_SESSION); }
+
+// ==================== LOGIN ====================
+function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const user = USERS[username];
+    if (!user || user.password !== password) { showToast('用户名或密码错误', 'error'); return false; }
+    currentUser = { username, ...user };
+    saveSession(currentUser);
+    showToast(`欢迎回来，${currentUser.name}！`, 'success');
+    showApp();
+    return false;
+}
+function handleLogout() {
+    if (!confirm('确定要退出登录吗？')) return;
+    currentUser = null; clearSession();
+    document.getElementById('appLayout').classList.remove('active');
+    document.getElementById('loginOverlay').classList.remove('hidden');
+}
+function showApp() {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('appLayout').classList.add('active');
+    document.getElementById('sidebarUserInfo').textContent = `${currentUser.name} · ${currentUser.role}`;
+    renderDemandTable();
+}
+
+// ==================== NAVIGATION ====================
+function switchPage(page) {
+    showLoading();
+    document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+    setTimeout(() => {
+        if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
+        else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); }
+        hideLoading();
+    }, 300);
+}
+
+// ==================== CLOUDBASE CLIENT ====================
+let cloudbaseApp = null;
+let cloudbaseDb = null;
+
+async function initCloudBase() {
+    if (typeof TENCENT_CLOUD_CONFIG !== 'undefined' && TENCENT_CLOUD_CONFIG.cloudbase && TENCENT_CLOUD_CONFIG.cloudbase.envId) {
+        try {
+            cloudbaseApp = cloudbase.init({ env: TENCENT_CLOUD_CONFIG.cloudbase.envId });
+            // 匿名登录
+            const auth = cloudbaseApp.auth();
+            await auth.anonymousSignIn();
+            cloudbaseDb = cloudbaseApp.database();
+            console.log('CloudBase 已连接并登录');
+            return true;
+        } catch (e) { console.error('CloudBase 初始化失败:', e); }
+    }
+    console.log('使用本地存储模式');
+    return false;
+}
+
+// ==================== DATA OPS ====================
+async function getDemands() {
+    if (cloudbaseDb) {
+        try {
+            const res = await cloudbaseDb.collection('demands').orderBy('createdAt', 'desc').get();
+            return res.data || [];
+        } catch (e) { console.error('获取需求失败:', e); return []; }
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_DEMANDS) || '[]');
+}
+
+async function saveDemands(demands) {
+    if (cloudbaseDb) {
+        try {
+            // 先清空集合，然后批量插入
+            const collection = cloudbaseDb.collection('demands');
+            // 删除所有现有记录
+            const existing = await collection.get();
+            for (const item of existing.data || []) {
+                await collection.doc(item._id).remove();
+            }
+            // 插入新记录
+            for (const demand of demands) {
+                await collection.add({ data: { ...demand } });
+            }
+        } catch (e) { console.error('保存需求失败:', e); }
+    } else {
+        localStorage.setItem(STORAGE_KEY_DEMANDS, JSON.stringify(demands));
+    }
+}
+
+async function getReviews() {
+    if (cloudbaseDb) {
+        try {
+            const res = await cloudbaseDb.collection('reviews').orderBy('date', 'desc').get();
+            return res.data || [];
+        } catch (e) { console.error('获取审查建议失败:', e); return []; }
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_REVIEWS) || '[]');
+}
+
+async function saveReviews(reviews) {
+    if (cloudbaseDb) {
+        try {
+            const collection = cloudbaseDb.collection('reviews');
+            const existing = await collection.get();
+            for (const item of existing.data || []) {
+                await collection.doc(item._id).remove();
+            }
+            for (const review of reviews) {
+                await collection.add({ data: { ...review } });
+            }
+        } catch (e) { console.error('保存审查建议失败:', e); }
+    } else {
+        localStorage.setItem(STORAGE_KEY_REVIEWS, JSON.stringify(reviews));
+    }
+}
+
+function generateId() { return 'DM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(); }
+
+// ==================== CREATE/EDIT MODAL ====================
+function openCreateModal(id = null) {
+    editingDemandId = id;
+    document.getElementById('createModalTitle').textContent = id ? '编辑需求' : '新建需求';
+    document.getElementById('submitBtn').textContent = id ? '更新需求' : '提交需求';
+    document.getElementById('editDemandId').value = id || '';
+    document.getElementById('demandForm').reset();
+    document.getElementById('titleCharCount').textContent = '0';
+    document.getElementById('valueCharCount').textContent = '0';
+    document.getElementById('remarkCharCount').textContent = '0';
+    document.getElementById('reviewSectionInForm').style.display = 'none';
+    document.querySelectorAll('input[name="fieldPM"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('input[name="fieldReviewPM"]').forEach(cb => cb.checked = false);
+
+    // Init multi-selects
+    initMultiSelect('msPlatform', MULTI_SELECT_OPTIONS.platform);
+    initMultiSelect('msRole', MULTI_SELECT_OPTIONS.role);
+    initMultiSelect('msModule', MULTI_SELECT_OPTIONS.module);
+    initMultiSelect('msAppliedCountry', MULTI_SELECT_OPTIONS.country);
+    initMultiSelect('msNeedCountry', MULTI_SELECT_OPTIONS.country);
+    initMultiSelect('msProposerCountry', MULTI_SELECT_OPTIONS.proposerCountry);
+
+    if (id) {
+        const demands = getDemands();
+        const d = demands.find(x => x.id === id);
+        if (d) {
+            document.getElementById('fieldType').value = d.type;
+            initMultiSelect('msPlatform', MULTI_SELECT_OPTIONS.platform, d.platformList || []);
+            initMultiSelect('msRole', MULTI_SELECT_OPTIONS.role, d.roleList || []);
+            initMultiSelect('msModule', MULTI_SELECT_OPTIONS.module, d.moduleList || []);
+            initMultiSelect('msAppliedCountry', MULTI_SELECT_OPTIONS.country, d.appliedCountryList || []);
+            initMultiSelect('msNeedCountry', MULTI_SELECT_OPTIONS.country, d.needCountryList || []);
+            initMultiSelect('msProposerCountry', MULTI_SELECT_OPTIONS.proposerCountry, d.proposerCountryList || []);
+            document.getElementById('fieldTitle').value = d.title;
+            document.getElementById('fieldContent').value = d.content;
+            document.getElementById('fieldValue').value = d.value || '';
+            document.getElementById('fieldProposerName').value = d.proposerName || '';
+            document.getElementById('fieldRegInfo').value = d.登记信息 || '';
+            document.getElementById('fieldExpectDate').value = d.expectDate;
+            document.getElementById('fieldLaunchDate').value = d.launchDate;
+            document.getElementById('fieldStatus').value = d.status;
+            document.getElementById('fieldPriority').value = d.priority;
+            document.getElementById('fieldDocUrl').value = d.docUrl;
+            document.getElementById('fieldRemark').value = d.remark;
+            document.getElementById('fieldCapability').value = d.capability;
+            document.getElementById('fieldNeedReview').value = d.needReview;
+            document.getElementById('titleCharCount').textContent = d.title.length;
+            document.getElementById('valueCharCount').textContent = (d.value || '').length;
+            document.getElementById('remarkCharCount').textContent = (d.remark || '').length;
+            handleNeedReviewChange();
+            document.querySelectorAll('input[name="fieldPM"]').forEach(cb => { cb.checked = (d.pmList || []).includes(cb.value); });
+        }
+    }
+    document.getElementById('createModal').classList.add('active');
+}
+function closeCreateModal() { document.getElementById('createModal').classList.remove('active'); editingDemandId = null; }
+
+function handleNeedReviewChange() {
+    document.getElementById('reviewSectionInForm').style.display = document.getElementById('fieldNeedReview').value === '是' ? '' : 'none';
+}
+
+async function handleDemandSubmit(e) {
+    e.preventDefault();
+    // 验证多选字段
+    if (getMultiSelectValues('msPlatform').length === 0) { showToast('请选择至少一个端', 'error'); return false; }
+    if (getMultiSelectValues('msRole').length === 0) { showToast('请选择至少一个角色', 'error'); return false; }
+    if (getMultiSelectValues('msModule').length === 0) { showToast('请选择至少一个关联模块', 'error'); return false; }
+    if (getMultiSelectValues('msAppliedCountry').length === 0) { showToast('请选择至少一个已应用国家', 'error'); return false; }
+    if (getMultiSelectValues('msNeedCountry').length === 0) { showToast('请选择至少一个需要应用国家', 'error'); return false; }
+    const pmChecked = document.querySelectorAll('input[name="fieldPM"]:checked');
+    if (pmChecked.length === 0) { showToast('请至少选择一个产品PM', 'error'); return false; }
+
+    const demands = await getDemands();
+    const id = document.getElementById('editDemandId').value || generateId();
+    const isEdit = !!document.getElementById('editDemandId').value;
+
+    const demand = {
+        id, workspace: '手机分销',
+        type: document.getElementById('fieldType').value,
+        platformList: getMultiSelectValues('msPlatform'),
+        platform: getMultiSelectValues('msPlatform').join(','),
+        roleList: getMultiSelectValues('msRole'),
+        role: getMultiSelectValues('msRole').join(','),
+        moduleList: getMultiSelectValues('msModule'),
+        module: getMultiSelectValues('msModule').join(','),
+        appliedCountryList: getMultiSelectValues('msAppliedCountry'),
+        appliedCountry: getMultiSelectValues('msAppliedCountry').join(','),
+        needCountryList: getMultiSelectValues('msNeedCountry'),
+        needCountry: getMultiSelectValues('msNeedCountry').join(','),
+        proposerCountryList: getMultiSelectValues('msProposerCountry'),
+        proposerCountry: getMultiSelectValues('msProposerCountry').join(','),
+        title: document.getElementById('fieldTitle').value.trim(),
+        content: document.getElementById('fieldContent').value.trim(),
+        value: document.getElementById('fieldValue').value.trim(),
+        proposerName: document.getElementById('fieldProposerName').value.trim(),
+        登记信息: isEdit ? (demands.find(d => d.id === id)?.登记信息 || '') : `${currentUser.name} | ${formatDate(new Date())}`,
+        expectDate: document.getElementById('fieldExpectDate').value,
+        launchDate: document.getElementById('fieldLaunchDate').value,
+        status: document.getElementById('fieldStatus').value,
+        priority: document.getElementById('fieldPriority').value,
+        docUrl: document.getElementById('fieldDocUrl').value.trim(),
+        remark: document.getElementById('fieldRemark').value.trim(),
+        pmList: Array.from(pmChecked).map(cb => cb.value),
+        capability: document.getElementById('fieldCapability').value,
+        needReview: document.getElementById('fieldNeedReview').value,
+        updatedAt: `${currentUser.name} | ${formatDate(new Date())}`,
+        createdAt: isEdit ? (demands.find(d => d.id === id)?.createdAt || '') : `${currentUser.name} | ${formatDate(new Date())}`
+    };
+
+    if (demand.needReview === '是') {
+        const reviewContent = document.getElementById('fieldReviewContent').value.trim();
+        if (reviewContent) {
+            const allReviews = await getReviews();
+            allReviews.push({
+                id: 'RV' + Date.now().toString(36).toUpperCase(),
+                demandId: id, author: currentUser.name, authorRole: currentUser.role,
+                date: formatDate(new Date()),
+                capability: document.getElementById('fieldReviewCapability').value,
+                module: document.getElementById('fieldReviewModule').value,
+                needCountry: document.getElementById('fieldReviewNeedCountry').value,
+                pmList: Array.from(document.querySelectorAll('input[name="fieldReviewPM"]:checked')).map(cb => cb.value),
+                content: reviewContent
+            });
+            await saveReviews(allReviews);
+        }
+    }
+
+    if (isEdit) { const idx = demands.findIndex(d => d.id === id); if (idx !== -1) demands[idx] = demand; showToast('需求更新成功', 'success'); }
+    else { demands.unshift(demand); showToast('需求创建成功', 'success'); }
+    await saveDemands(demands);
+    closeCreateModal();
+    await renderDemandTable();
+    return false;
+}
+
+function editDemand(id) { openCreateModal(id); }
+
+async function deleteDemand(id) {
+    if (!confirm('确定要删除这条需求吗？此操作不可恢复。')) return;
+    let demands = await getDemands();
+    const demand = demands.find(d => d.id === id);
+    if (demand && demand.status !== '待确认') { showToast('只有"待确认"状态的需求才能删除', 'error'); return; }
+    demands = demands.filter(d => d.id !== id);
+    await saveDemands(demands);
+    let allReviews = await getReviews();
+    let reviews = allReviews.filter(r => r.demandId !== id);
+    await saveReviews(reviews);
+    showToast('需求已删除', 'success');
+    await renderDemandTable();
+}
+
+// ==================== VIEW DETAIL ====================
+async function viewDemand(id) {
+    const demands = await getDemands();
+    const d = demands.find(x => x.id === id);
+    if (!d) return;
+    const allReviews = await getReviews();
+    const reviews = allReviews.filter(r => r.demandId === id);
+    document.getElementById('detailTitle').textContent = d.title;
+    document.getElementById('detailBody').innerHTML = `
+        <div class="detail-grid">
+            <div class="detail-label">编号</div><div class="detail-value">${d.id}</div>
+            <div class="detail-label">工作区</div><div class="detail-value">${d.workspace || '手机分销'}</div>
+            <div class="detail-label">类型</div><div class="detail-value">${d.type}</div>
+            <div class="detail-label">端</div><div class="detail-value">${(d.platformList || []).join('、') || d.platform}</div>
+            <div class="detail-label">角色</div><div class="detail-value">${(d.roleList || []).join('、') || d.role}</div>
+            <div class="detail-label">关联模块</div><div class="detail-value">${(d.moduleList || []).join('、') || d.module}</div>
+            <div class="detail-label">已应用国家</div><div class="detail-value">${(d.appliedCountryList || []).join('、') || d.appliedCountry}</div>
+            <div class="detail-label">需要应用国家</div><div class="detail-value">${(d.needCountryList || []).join('、') || d.needCountry}</div>
+            <div class="detail-label">优先级</div><div class="detail-value"><span class="badge ${getPriorityBadgeClass(d.priority)}">${d.priority}</span></div>
+            <div class="detail-label">当前状态</div><div class="detail-value"><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></div>
+            <div class="detail-label">能力形式</div><div class="detail-value">${d.capability || '-'}</div>
+            <div class="detail-label">产品PM</div><div class="detail-value">${(d.pmList || []).join('、') || '-'}</div>
+            <div class="detail-label">需求提出</div><div class="detail-value">${(d.proposerCountryList || []).join('、') || '-'} ${d.proposerName ? '· ' + d.proposerName : ''}</div>
+            <div class="detail-label">登记信息</div><div class="detail-value">${d.登记信息 || '-'}</div>
+            <div class="detail-label">业务预期时间</div><div class="detail-value">${d.expectDate || '-'}</div>
+            <div class="detail-label">上线时间</div><div class="detail-value">${d.launchDate || '-'}</div>
+            <div class="detail-label">是否审查</div><div class="detail-value">${d.needReview}</div>
+            <div class="detail-label">文档地址</div><div class="detail-value">${d.docUrl ? `<a href="${escapeHtml(d.docUrl)}" target="_blank" style="color:var(--primary)">${escapeHtml(d.docUrl)}</a>` : '-'}</div>
+            <div class="detail-label">需求内容</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(d.content)}</div>
+            <div class="detail-label">需求价值</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(d.value || '-')}</div>
+            <div class="detail-label">备注</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(d.remark || '-')}</div>
+            <div class="detail-label">最后更新</div><div class="detail-value">${d.updatedAt || '-'}</div>
+        </div>
+        ${reviews.length > 0 ? `<div style="margin-top:20px;"><h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">审查建议 (${reviews.length})</h4>${reviews.map(r => `<div class="review-item"><div class="review-item-header"><span>${r.author} (${r.authorRole})</span><span>${r.date}</span></div><div class="review-item-content">${r.capability ? `<div><b>能力形式：</b>${r.capability}</div>` : ''}${r.module ? `<div><b>关联模块：</b>${r.module}</div>` : ''}${r.content ? `<div style="margin-top:4px;"><b>建议：</b>${escapeHtml(r.content)}</div>` : ''}</div></div>`).join('')}</div>` : ''}
+    `;
+    document.getElementById('detailModal').classList.add('active');
+}
+function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); }
+
+// ==================== REVIEW MODAL ====================
+function openReviewModal(demandId) {
+    document.getElementById('reviewDemandId').value = demandId;
+    document.getElementById('reviewForm').reset();
+    document.querySelectorAll('input[name="reviewPM"]').forEach(cb => cb.checked = false);
+    document.getElementById('reviewModal').classList.add('active');
+}
+function closeReviewModal() { document.getElementById('reviewModal').classList.remove('active'); }
+async function handleReviewSubmit(e) {
+    e.preventDefault();
+    const demandId = document.getElementById('reviewDemandId').value;
+    const content = document.getElementById('reviewContent').value.trim();
+    if (!content) { showToast('请输入审查建议', 'error'); return false; }
+    const allReviews = await getReviews();
+    allReviews.push({
+        id: 'RV' + Date.now().toString(36).toUpperCase(),
+        demandId, author: currentUser.name, authorRole: currentUser.role,
+        date: formatDate(new Date()),
+        capability: document.getElementById('reviewCapability').value,
+        module: document.getElementById('reviewModule').value,
+        needCountry: document.getElementById('reviewNeedCountry').value,
+        pmList: Array.from(document.querySelectorAll('input[name="reviewPM"]:checked')).map(cb => cb.value),
+        content
+    });
+    await saveReviews(allReviews);
+    closeReviewModal();
+    showToast('审查建议已提交', 'success');
+    await renderDemandTable();
+    return false;
+}
+
+// ==================== TABLE ====================
+async function renderDemandTable(filteredDemands) {
+    const demands = filteredDemands || await getDemands();
+    const tbody = document.getElementById('demandTableBody');
+    const empty = document.getElementById('emptyState');
+    if (demands.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+    const allReviews = await getReviews();
+    tbody.innerHTML = demands.map(d => {
+        const contentPreview = d.content && d.content.length > 20 ? d.content.substring(0, 20) + '...' : (d.content || '-');
+        const reviews = allReviews.filter(r => r.demandId === d.id);
+        const reviewerInfo = reviews.length > 0 ? `${reviews[reviews.length-1].author} ${reviews[reviews.length-1].date.split(' ')[0]}` : '-';
+        const canDelete = d.status === '待确认';
+        return `<tr>
+            <td style="font-family:monospace;font-size:11px;">${d.id}</td>
+            <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.title)}">${escapeHtml(d.title)}</td>
+            <td class="content-preview" title="${escapeHtml(d.content || '')}">${escapeHtml(contentPreview)}</td>
+            <td>${d.type}</td>
+            <td>${(d.platformList || [d.platform]).join('、')}</td>
+            <td>${(d.moduleList || [d.module]).join('、')}</td>
+            <td><span class="badge ${getPriorityBadgeClass(d.priority)}">${d.priority}</span></td>
+            <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+            <td>${(d.pmList || []).join('、')}</td>
+            <td>${(d.appliedCountryList || [d.appliedCountry]).join('、')}</td>
+            <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.登记信息 || '')}">${escapeHtml(d.登记信息 || '-')}</td>
+            <td>${d.capability || '-'}</td>
+            <td style="font-size:10px;">${reviewerInfo}</td>
+            <td><div class="action-btns">
+                <button class="action-btn" title="查看" onclick="viewDemand('${d.id}')">👁</button>
+                <button class="action-btn edit" title="编辑" onclick="editDemand('${d.id}')">✏️</button>
+                <button class="action-btn review" title="审查" onclick="openReviewModal('${d.id}')">💬</button>
+                ${canDelete ? `<button class="action-btn delete" title="删除" onclick="deleteDemand('${d.id}')">🗑️</button>` : ''}
+            </div></td>
+        </tr>`;
+    }).join('');
+}
+
+// ==================== FILTERS ====================
+async function applyListFilter() {
+    let demands = await getDemands();
+    const f = id => document.getElementById(id).value;
+    // 搜索标题
+    if (f('filterSearch')) {
+        const keyword = f('filterSearch').toLowerCase();
+        demands = demands.filter(d => (d.title || '').toLowerCase().includes(keyword) || (d.content || '').toLowerCase().includes(keyword));
+    }
+    if (f('filterLaunchMonth')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('filterLaunchMonth')));
+    if (f('filterExpectMonth')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('filterExpectMonth')));
+    if (f('filterAppliedCountry')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('filterAppliedCountry')));
+    if (f('filterNeedCountry')) demands = demands.filter(d => (d.needCountry || '').includes(f('filterNeedCountry')));
+    if (f('filterStatus')) demands = demands.filter(d => d.status === f('filterStatus'));
+    if (f('filterNeedReview')) demands = demands.filter(d => d.needReview === f('filterNeedReview'));
+    if (f('filterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('filterPM')));
+    await renderDemandTable(demands);
+    showToast(`筛选结果：${demands.length} 条需求`, 'info');
+}
+async function resetListFilter() {
+    ['filterSearch','filterLaunchMonth','filterExpectMonth','filterAppliedCountry','filterNeedCountry','filterStatus','filterNeedReview','filterPM'].forEach(id => document.getElementById(id).value = '');
+    await renderDemandTable();
+}
+
+// ==================== STATS ====================
+async function updateStats() {
+    let demands = await getDemands();
+    const f = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+    if (f('statFilterLaunch')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('statFilterLaunch')));
+    if (f('statFilterExpect')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('statFilterExpect')));
+    if (f('statFilterApplied')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('statFilterApplied')));
+    if (f('statFilterNeed')) demands = demands.filter(d => (d.needCountry || '').includes(f('statFilterNeed')));
+    if (f('statFilterStatus')) demands = demands.filter(d => d.status === f('statFilterStatus'));
+    if (f('statFilterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('statFilterPM')));
+
+    document.getElementById('statTotal').textContent = demands.length;
+    document.getElementById('statPending').textContent = demands.filter(d => d.status === '待确认').length;
+    document.getElementById('statReviewing').textContent = demands.filter(d => d.status === '待评审').length;
+    document.getElementById('statDev').textContent = demands.filter(d => d.status === '开发中').length;
+    document.getElementById('statTesting').textContent = demands.filter(d => d.status === '测试中').length;
+    document.getElementById('statReleased').textContent = demands.filter(d => d.status === '已发布').length;
+    document.getElementById('statSuspended').textContent = demands.filter(d => d.status === '挂起').length;
+
+    // Module breakdown
+    const moduleData = {};
+    demands.forEach(d => { (d.moduleList || [d.module]).forEach(m => { if (m) moduleData[m] = (moduleData[m] || 0) + 1; }); });
+    document.getElementById('moduleBreakdown').innerHTML = renderChartBar(moduleData, { '全部':'#6b7280', '金融模式':'#4f46e5', '进件':'#3b82f6', '佣金':'#f59e0b', '商品':'#10b981', '结算':'#8b5cf6', '风控':'#ef4444', '订单':'#06b6d4', '考培':'#ec4899', '数据看板':'#14b8a6', '基础模块':'#6366f1', '广告':'#f97316', '消息':'#84cc16', '催收':'#e11d48', '其他':'#6b7280' });
+
+    // Type breakdown
+    const typeData = {};
+    demands.forEach(d => { if (d.type) typeData[d.type] = (typeData[d.type] || 0) + 1; });
+    document.getElementById('typeBreakdown').innerHTML = renderChartBar(typeData, { '平台':'#4f46e5', '业务':'#10b981' });
+
+    // Country breakdown
+    const countryData = {};
+    demands.forEach(d => { (d.appliedCountryList || [d.appliedCountry]).forEach(c => { if (c && c !== '无' && c !== '全部') countryData[c] = (countryData[c] || 0) + 1; }); });
+    document.getElementById('countryBreakdown').innerHTML = renderChartBar(countryData, { '巴基斯坦':'#4f46e5', '孟加拉':'#10b981', '乌干达':'#f59e0b', '尼日利亚':'#ef4444', '坦桑尼亚':'#06b6d4', '菲律宾':'#8b5cf6', '布基纳法索':'#ec4899' });
+
+    // Release list
+    const released = demands.filter(d => d.status === '已发布');
+    const releaseListEl = document.getElementById('releaseList');
+    if (released.length === 0) {
+        releaseListEl.innerHTML = '<div class="empty-state"><p>暂无已发布需求</p></div>';
+    } else {
+        releaseListEl.innerHTML = released.map(d => `
+            <div class="release-item">
+                <span class="badge ${getPriorityBadgeClass(d.priority)}">${d.priority}</span>
+                <span class="release-item-title">${escapeHtml(d.title)}</span>
+                <span class="release-item-meta">${d.module || '-'}</span>
+                <span class="release-item-meta">${(d.pmList || []).join('、')}</span>
+                <span class="release-item-meta">${d.launchDate || '-'}</span>
+            </div>
+        `).join('');
+    }
+}
+
+function renderChartBar(data, colors) {
+    const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+    const max = Math.max(...entries.map(e => e[1]), 1);
+    if (entries.length === 0) return '<div style="font-size:12px;color:var(--gray-400);text-align:center;padding:20px;">暂无数据</div>';
+    return entries.map(([key, val]) => `
+        <div class="chart-bar">
+            <div class="chart-bar-label">${key}</div>
+            <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(val/max)*100}%;background:${colors[key]||'var(--primary)'};"><span>${val}</span></div></div>
+        </div>
+    `).join('');
+}
+
+// ==================== EXPORT ====================
+async function exportToExcel() {
+    let demands = await getDemands();
+    const f = id => document.getElementById(id).value;
+    if (f('filterLaunchMonth')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('filterLaunchMonth')));
+    if (f('filterExpectMonth')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('filterExpectMonth')));
+    if (f('filterAppliedCountry')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('filterAppliedCountry')));
+    if (f('filterNeedCountry')) demands = demands.filter(d => (d.needCountry || '').includes(f('filterNeedCountry')));
+    if (f('filterStatus')) demands = demands.filter(d => d.status === f('filterStatus'));
+    if (f('filterNeedReview')) demands = demands.filter(d => d.needReview === f('filterNeedReview'));
+    if (f('filterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('filterPM')));
+    if (demands.length === 0) { showToast('没有可导出的数据', 'error'); return; }
+    const headers = ['编号','标题','需求内容','需求价值','类型','端','角色','关联模块','已应用国家','需要应用国家','优先级','状态','产品PM','能力形式','登记信息','业务预期时间','上线时间','文档地址','备注','是否审查','最后更新'];
+    const rows = demands.map(d => [d.id, d.title, d.content, d.value, d.type, (d.platformList||[]).join('、'), (d.roleList||[]).join('、'), (d.moduleList||[]).join('、'), (d.appliedCountryList||[]).join('、'), (d.needCountryList||[]).join('、'), d.priority, d.status, (d.pmList||[]).join('、'), d.capability, d.登记信息, d.expectDate, d.launchDate, d.docUrl, d.remark, d.needReview, d.updatedAt]);
+    const csv = '\uFEFF' + [headers, ...rows].map(r => r.map(c => `"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `需求列表_${formatDateFile(new Date())}.csv`; a.click();
+    showToast(`已导出 ${demands.length} 条需求`, 'success');
+}
+
+// ==================== UTILS ====================
+function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; }
+function formatDateFile(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
+function getStatusBadgeClass(s) { return {'待确认':'badge-pending','待评审':'badge-review','开发中':'badge-dev','测试中':'badge-test','已发布':'badge-released','已关闭':'badge-closed','挂起':'badge-suspended'}[s]||''; }
+function getPriorityBadgeClass(p) { return {'P0':'badge-p0','P1':'badge-p1','P2':'badge-p2'}[p]||''; }
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`; setTimeout(() => t.classList.remove('show'), 3000); }
+function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+
+// Char counters
+document.addEventListener('input', e => {
+    if (e.target.id === 'fieldTitle') document.getElementById('titleCharCount').textContent = e.target.value.length;
+    if (e.target.id === 'fieldValue') document.getElementById('valueCharCount').textContent = e.target.value.length;
+    if (e.target.id === 'fieldRemark') document.getElementById('remarkCharCount').textContent = e.target.value.length;
+});
+
+// Init
+window.addEventListener('DOMContentLoaded', async () => {
+    await initCloudBase();
+    if (!checkSession()) document.getElementById('loginOverlay').classList.remove('hidden');
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetailModal(); closeCreateModal(); closeReviewModal(); } });
+
+// Clear test data
+localStorage.removeItem(STORAGE_KEY_DEMANDS);
+localStorage.removeItem(STORAGE_KEY_REVIEWS);
+</script>
+</body>
+</html>
