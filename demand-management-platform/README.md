@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 需求管理平台
 
-## Getting Started
+分销团队需求管理平台，支持需求登记、排期跟踪、统计分析的协作工具。
 
-First, run the development server:
+## 快速开始
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### 团队成员（使用平台）
+- 访问：`https://demand.sevenway.top`（备案完成后生效）
+- 账号密码见 [团队操作手册](TEAM_GUIDE.md)
+
+### 开发者（维护代码）
+- 查看 [开发者指南](DEVELOPER_GUIDE.md)
+- 核心文件：`deploy/index.html`（纯静态）
+- 部署平台：EdgeOne Pages
+- 数据库：腾讯云 CloudBase
+
+## 项目结构
+
+```
+deploy/
+├── index.html          # 主页面
+├── config.js           # 配置文件
+└── tencent-config.js   # CloudBase 配置
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 文档
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [团队操作手册](TEAM_GUIDE.md) — 使用说明、协作规范
+- [开发者指南](DEVELOPER_GUIDE.md) — 如何在 WorkBuddy 中维护此项目
+- [部署指南](DEPLOY_GUIDE.md) — 部署流程
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 技术栈
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 前端：HTML + CSS + JavaScript（纯静态）
+- 部署：EdgeOne Pages + 腾讯云 DNS
+- 数据库：CloudBase
+- 版本管理：GitHub
