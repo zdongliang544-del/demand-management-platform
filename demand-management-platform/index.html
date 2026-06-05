@@ -252,6 +252,9 @@
             <a id="navList" class="active" onclick="switchPage('list')">
                 <span>📋</span> 需求列表
             </a>
+            <a id="navSchedule" onclick="switchPage('schedule')">
+                <span>📅</span> 需求排期
+            </a>
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
             </a>
@@ -319,6 +322,87 @@
                             </table>
                         </div>
                         <div id="emptyState" class="empty-state"><div class="icon">📭</div><p>暂无需求数据</p><button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 需求排期页 -->
+        <div id="pageSchedule" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>需求排期</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openScheduleModal()">➕ 新建排期</button>
+                    <button class="btn btn-secondary btn-sm" onclick="switchPage('list')">← 返回列表</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>责任人</label>
+                        <select id="scheduleFilterOwner">
+                            <option value="">全部</option>
+                            <option value="朱黎">朱黎</option>
+                            <option value="张栋良">张栋良</option>
+                            <option value="彭程硕">彭程硕</option>
+                            <option value="李思开">李思开</option>
+                            <option value="孙佳俊">孙佳俊</option>
+                            <option value="吕少俊">吕少俊</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>角色</label>
+                        <select id="scheduleFilterRole">
+                            <option value="">全部</option>
+                            <option value="产品">产品</option>
+                            <option value="开发">开发</option>
+                            <option value="测试">测试</option>
+                            <option value="UI">UI</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>状态</label>
+                        <select id="scheduleFilterStatus">
+                            <option value="">全部</option>
+                            <option value="待排期">待排期</option>
+                            <option value="进行中">进行中</option>
+                            <option value="已完成">已完成</option>
+                            <option value="已延期">已延期</option>
+                        </select>
+                    </div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="applyScheduleFilter()">筛选</button></div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="resetScheduleFilter()">重置</button></div>
+                </div>
+
+                <!-- 甘特图视图 -->
+                <div class="card" style="margin-bottom:16px;">
+                    <div class="card-header">
+                        <h3>📅 排期视图</h3>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-sm btn-secondary" onclick="setScheduleView('week')">周视图</button>
+                            <button class="btn btn-sm btn-secondary" onclick="setScheduleView('month')">月视图</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="ganttChart" style="overflow-x:auto;"></div>
+                    </div>
+                </div>
+
+                <!-- 排期列表 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>排期列表</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-wrapper">
+                            <table>
+                                <thead><tr>
+                                    <th>需求编号</th><th>需求标题</th><th>类型</th><th>责任人</th><th>角色</th><th>开始时间</th><th>结束时间</th><th>进度</th><th>状态</th><th>备注</th><th>操作</th>
+                                </tr></thead>
+                                <tbody id="scheduleTableBody"></tbody>
+                            </table>
+                        </div>
+                        <div id="scheduleEmptyState" class="empty-state"><div class="icon">📅</div><p>暂无排期数据</p><button class="btn btn-primary btn-sm" onclick="openScheduleModal()">➕ 新建排期</button></div>
                     </div>
                 </div>
             </div>
@@ -564,6 +648,7 @@ function switchPage(page) {
     document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
     setTimeout(() => {
         if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
+        else if (page === 'schedule') { document.getElementById('pageSchedule').style.display = ''; document.getElementById('navSchedule').classList.add('active'); renderScheduleTable(); }
         else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); }
         hideLoading();
     }, 300);
@@ -993,6 +1078,242 @@ function renderChartBar(data, colors) {
             <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${(val/max)*100}%;background:${colors[key]||'var(--primary)'};"><span>${val}</span></div></div>
         </div>
     `).join('');
+}
+
+// ==================== SCHEDULE ====================
+const STORAGE_KEY_SCHEDULE = 'demand_mgmt_schedule';
+let scheduleView = 'week';
+
+function getSchedules() { return JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE) || '[]'); }
+function saveSchedules(s) { localStorage.setItem(STORAGE_KEY_SCHEDULE, JSON.stringify(s)); }
+
+function openScheduleModal(id = null) {
+    const demands = [];
+    document.getElementById('scheduleModal') || createScheduleModal();
+    const modal = document.getElementById('scheduleModal');
+    const titleEl = document.getElementById('scheduleModalTitle');
+    const form = document.getElementById('scheduleForm');
+    form.reset();
+    document.getElementById('editScheduleId').value = id || '';
+
+    // 加载需求列表
+    const demandSelect = document.getElementById('scheduleDemandId');
+    demandSelect.innerHTML = '<option value="">请选择需求</option>';
+
+    getDemands().then(demands => {
+        demands.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d.id;
+            opt.textContent = `${d.id} - ${d.title}`;
+            demandSelect.appendChild(opt);
+        });
+    });
+
+    if (id) {
+        titleEl.textContent = '编辑排期';
+        const schedules = getSchedules();
+        const s = schedules.find(x => x.id === id);
+        if (s) {
+            document.getElementById('editScheduleId').value = s.id;
+            document.getElementById('scheduleDemandId').value = s.demandId;
+            document.getElementById('scheduleOwner').value = s.owner;
+            document.getElementById('scheduleRole').value = s.role;
+            document.getElementById('scheduleStartDate').value = s.startDate;
+            document.getElementById('scheduleEndDate').value = s.endDate;
+            document.getElementById('scheduleProgress').value = s.progress;
+            document.getElementById('scheduleStatus').value = s.status;
+            document.getElementById('scheduleRemark').value = s.remark || '';
+        }
+    } else {
+        titleEl.textContent = '新建排期';
+    }
+
+    modal.classList.add('active');
+}
+
+function createScheduleModal() {
+    const modalHTML = `
+    <div id="scheduleModal" class="modal-overlay" onclick="if(event.target===this)closeScheduleModal()">
+        <div class="modal" style="width:600px;">
+            <div class="modal-header"><h2 id="scheduleModalTitle">新建排期</h2><button class="modal-close" onclick="closeScheduleModal()">&times;</button></div>
+            <div class="modal-body">
+                <form id="scheduleForm" onsubmit="return handleScheduleSubmit(event)">
+                    <input type="hidden" id="editScheduleId" value="">
+                    <div class="form-grid">
+                        <div class="form-group full-width"><label>关联需求 <span style="color:var(--danger)">*</span></label><select id="scheduleDemandId" required></select></div>
+                        <div class="form-group"><label>责任人 <span style="color:var(--danger)">*</span></label><select id="scheduleOwner" required><option value="">请选择</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option><option value="吕少俊">吕少俊</option></select></div>
+                        <div class="form-group"><label>角色 <span style="color:var(--danger)">*</span></label><select id="scheduleRole" required><option value="">请选择</option><option value="产品">产品</option><option value="开发">开发</option><option value="测试">测试</option><option value="UI">UI</option></select></div>
+                        <div class="form-group"><label>开始时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleStartDate" required></div>
+                        <div class="form-group"><label>结束时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleEndDate" required></div>
+                        <div class="form-group"><label>进度 (%)</label><input type="number" id="scheduleProgress" min="0" max="100" value="0"></div>
+                        <div class="form-group"><label>状态</label><select id="scheduleStatus"><option value="待排期">待排期</option><option value="进行中">进行中</option><option value="已完成">已完成</option><option value="已延期">已延期</option></select></div>
+                        <div class="form-group full-width"><label>备注</label><textarea id="scheduleRemark" rows="2" placeholder="可选"></textarea></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary btn-sm" onclick="closeScheduleModal()">取消</button>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('scheduleForm').requestSubmit()">保存</button>
+            </div>
+        </div>
+    </div>`;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeScheduleModal() { document.getElementById('scheduleModal').classList.remove('active'); }
+
+async function handleScheduleSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('editScheduleId').value || 'SCH' + Date.now().toString(36).toUpperCase();
+    const isEdit = !!document.getElementById('editScheduleId').value;
+
+    const schedule = {
+        id,
+        demandId: document.getElementById('scheduleDemandId').value,
+        owner: document.getElementById('scheduleOwner').value,
+        role: document.getElementById('scheduleRole').value,
+        startDate: document.getElementById('scheduleStartDate').value,
+        endDate: document.getElementById('scheduleEndDate').value,
+        progress: parseInt(document.getElementById('scheduleProgress').value) || 0,
+        status: document.getElementById('scheduleStatus').value,
+        remark: document.getElementById('scheduleRemark').value.trim(),
+        createdAt: isEdit ? undefined : `${currentUser.name} | ${formatDate(new Date())}`,
+        updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
+    };
+
+    const schedules = getSchedules();
+    if (isEdit) {
+        const idx = schedules.findIndex(s => s.id === id);
+        if (idx !== -1) { schedule.createdAt = schedules[idx].createdAt; schedules[idx] = schedule; }
+    } else {
+        schedules.unshift(schedule);
+    }
+    saveSchedules(schedules);
+    closeScheduleModal();
+    showToast(isEdit ? '排期更新成功' : '排期创建成功', 'success');
+    await renderScheduleTable();
+    return false;
+}
+
+function deleteSchedule(id) {
+    if (!confirm('确定要删除这条排期吗？')) return;
+    let schedules = getSchedules();
+    schedules = schedules.filter(s => s.id !== id);
+    saveSchedules(schedules);
+    showToast('排期已删除', 'success');
+    renderScheduleTable();
+}
+
+async function renderScheduleTable(filteredSchedules) {
+    const schedules = filteredSchedules || getSchedules();
+    const tbody = document.getElementById('scheduleTableBody');
+    const empty = document.getElementById('scheduleEmptyState');
+
+    if (schedules.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+
+    // 加载需求标题
+    const demands = await getDemands();
+    const demandMap = {};
+    demands.forEach(d => { demandMap[d.id] = d.title; });
+
+    tbody.innerHTML = schedules.map(s => {
+        const demandTitle = demandMap[s.demandId] || s.demandId;
+        const progressColor = s.progress >= 100 ? 'var(--success)' : s.progress >= 50 ? 'var(--primary)' : 'var(--warning)';
+        return `<tr>
+            <td style="font-family:monospace;font-size:11px;">${s.demandId}</td>
+            <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(demandTitle)}">${escapeHtml(demandTitle)}</td>
+            <td>${s.role}</td>
+            <td>${s.owner}</td>
+            <td>${s.startDate || '-'}</td>
+            <td>${s.endDate || '-'}</td>
+            <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:var(--gray-200);border-radius:3px;"><div style="width:${s.progress}%;height:100%;background:${progressColor};border-radius:3px;"></div></div><span style="font-size:11px;">${s.progress}%</span></div></td>
+            <td><span class="badge ${s.status === '已完成' ? 'badge-released' : s.status === '已延期' ? 'badge-p0' : s.status === '进行中' ? 'badge-dev' : 'badge-pending'}">${s.status}</span></td>
+            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.remark || '')}">${escapeHtml(s.remark || '-')}</td>
+            <td><div class="action-btns">
+                <button class="action-btn edit" title="编辑" onclick="openScheduleModal('${s.id}')">✏️</button>
+                <button class="action-btn delete" title="删除" onclick="deleteSchedule('${s.id}')">🗑️</button>
+            </div></td>
+        </tr>`;
+    }).join('');
+}
+
+async function applyScheduleFilter() {
+    let schedules = getSchedules();
+    const f = id => document.getElementById(id).value;
+    if (f('scheduleFilterOwner')) schedules = schedules.filter(s => s.owner === f('scheduleFilterOwner'));
+    if (f('scheduleFilterRole')) schedules = schedules.filter(s => s.role === f('scheduleFilterRole'));
+    if (f('scheduleFilterStatus')) schedules = schedules.filter(s => s.status === f('scheduleFilterStatus'));
+    await renderScheduleTable(schedules);
+    showToast(`筛选结果：${schedules.length} 条排期`, 'info');
+}
+
+async function resetScheduleFilter() {
+    ['scheduleFilterOwner', 'scheduleFilterRole', 'scheduleFilterStatus'].forEach(id => document.getElementById(id).value = '');
+    await renderScheduleTable();
+}
+
+function setScheduleView(view) {
+    scheduleView = view;
+    renderGanttChart();
+}
+
+async function renderGanttChart() {
+    const schedules = getSchedules();
+    const demands = await getDemands();
+    const demandMap = {};
+    demands.forEach(d => { demandMap[d.id] = d.title; });
+
+    const container = document.getElementById('ganttChart');
+    if (schedules.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>暂无排期数据</p></div>';
+        return;
+    }
+
+    // 计算日期范围
+    const dates = schedules.flatMap(s => [s.startDate, s.endDate].filter(Boolean)).sort();
+    if (dates.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>暂无有效日期</p></div>';
+        return;
+    }
+
+    const minDate = new Date(dates[0]);
+    const maxDate = new Date(dates[dates.length - 1]);
+    const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+
+    let html = `<div style="min-width:${Math.max(totalDays * 40, 400)}px;">`;
+    html += `<div style="display:flex;border-bottom:1px solid var(--gray-200);padding-bottom:8px;margin-bottom:8px;">`;
+    html += `<div style="width:120px;font-weight:600;font-size:11px;">需求</div>`;
+    html += `<div style="flex:1;display:flex;">`;
+
+    // 日期头
+    for (let i = 0; i < totalDays; i++) {
+        const d = new Date(minDate);
+        d.setDate(d.getDate() + i);
+        const dayStr = `${d.getMonth()+1}/${d.getDate()}`;
+        html += `<div style="flex:1;text-align:center;font-size:10px;color:var(--gray-500);">${dayStr}</div>`;
+    }
+    html += `</div></div>`;
+
+    // 排期行
+    schedules.forEach(s => {
+        const start = new Date(s.startDate);
+        const end = new Date(s.endDate);
+        const startOffset = Math.ceil((start - minDate) / (1000 * 60 * 60 * 24));
+        const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        const demandTitle = demandMap[s.demandId] || s.demandId;
+
+        const barColor = s.status === '已完成' ? 'var(--success)' : s.status === '已延期' ? 'var(--danger)' : s.status === '进行中' ? 'var(--primary)' : 'var(--gray-400)';
+
+        html += `<div style="display:flex;align-items:center;margin-bottom:4px;">`;
+        html += `<div style="width:120px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(demandTitle)}">${escapeHtml(demandTitle)}</div>`;
+        html += `<div style="flex:1;position:relative;height:24px;">`;
+        html += `<div style="position:absolute;left:${(startOffset/totalDays)*100}%;width:${(duration/totalDays)*100}%;height:20px;background:${barColor};border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:600;min-width:30px;">${s.progress}%</div>`;
+        html += `</div></div>`;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
 }
 
 // ==================== EXPORT ====================
