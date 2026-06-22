@@ -212,6 +212,28 @@
         .release-item { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; margin-bottom: 6px; }
         .release-item-title { font-size: 12px; font-weight: 600; flex: 1; }
         .release-item-meta { font-size: 11px; color: var(--gray-500); }
+
+        /* Blocked / 卡点 styles */
+        .badge-blocked { background: var(--danger); color: white; }
+        .badge-blocked-light { background: var(--danger-light); color: var(--danger); }
+        .row-blocked { background: #fef2f2 !important; }
+        .row-blocked td { border-bottom-color: #fecaca !important; }
+        .block-time-warning { color: var(--danger); font-weight: 600; }
+        .block-time-danger { color: #991b1b; font-weight: 700; background: #fee2e2; padding: 2px 6px; border-radius: 4px; }
+        .person-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+        .person-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-200); }
+        .person-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+        .person-name { font-size: 16px; font-weight: 700; }
+        .person-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .person-stat { text-align: center; padding: 12px; background: var(--gray-50); border-radius: 8px; }
+        .person-stat-num { font-size: 22px; font-weight: 700; }
+        .person-stat-label { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+        .person-task-list { max-height: 300px; overflow-y: auto; }
+        .person-task-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--gray-200); border-radius: 6px; margin-bottom: 6px; font-size: 13px; }
+        .person-task-item.blocked { border-color: #fecaca; background: #fef2f2; }
+        .person-task-id { font-family: monospace; font-size: 11px; color: var(--gray-500); min-width: 50px; }
+        .person-task-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .person-task-status { font-size: 11px; }
     </style>
 </head>
 <body>
@@ -254,6 +276,9 @@
             </a>
             <a id="navSchedule" onclick="switchPage('schedule')">
                 <span>📅</span> 需求排期
+            </a>
+            <a id="navPerson" onclick="switchPage('person')">
+                <span>👥</span> 人员看板
             </a>
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
@@ -441,6 +466,32 @@
                     <div class="card"><div class="card-header"><h3>按国家分布</h3></div><div class="card-body"><div id="countryBreakdown"></div></div></div>
                 </div>
                 <div class="card" style="margin-top:16px;"><div class="card-header"><h3>📋 上线清单</h3></div><div class="card-body" id="releaseList"><div class="empty-state"><p>暂无已发布需求</p></div></div></div>
+            </div>
+        </div>
+
+        <!-- 人员看板页 -->
+        <div id="pagePerson" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>👥 人员看板</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="switchPage('list')">← 返回列表</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>角色</label>
+                        <select id="personFilterRole">
+                            <option value="">全部</option>
+                            <option value="产品">产品</option>
+                            <option value="开发">开发</option>
+                            <option value="测试">测试</option>
+                            <option value="UI">UI</option>
+                        </select>
+                    </div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="renderPersonDashboard()">刷新</button></div>
+                </div>
+                <div id="personDashboard"></div>
             </div>
         </div>
     </main>
@@ -649,6 +700,7 @@ function switchPage(page) {
     setTimeout(() => {
         if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
         else if (page === 'schedule') { document.getElementById('pageSchedule').style.display = ''; document.getElementById('navSchedule').classList.add('active'); renderScheduleTable(); }
+        else if (page === 'person') { document.getElementById('pagePerson').style.display = ''; document.getElementById('navPerson').classList.add('active'); renderPersonDashboard(); }
         else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); }
         hideLoading();
     }, 300);
@@ -1122,7 +1174,11 @@ function openScheduleModal(id = null) {
             document.getElementById('scheduleEndDate').value = s.endDate;
             document.getElementById('scheduleProgress').value = s.progress;
             document.getElementById('scheduleStatus').value = s.status;
+            document.getElementById('scheduleIsBlocked').value = s.isBlocked || '否';
+            document.getElementById('scheduleBlockReason').value = s.blockReason || '';
+            document.getElementById('scheduleBlockDetail').value = s.blockDetail || '';
             document.getElementById('scheduleRemark').value = s.remark || '';
+            toggleBlockFields();
         }
     } else {
         titleEl.textContent = '新建排期';
@@ -1147,6 +1203,11 @@ function createScheduleModal() {
                         <div class="form-group"><label>结束时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleEndDate" required></div>
                         <div class="form-group"><label>进度 (%)</label><input type="number" id="scheduleProgress" min="0" max="100" value="0"></div>
                         <div class="form-group"><label>状态</label><select id="scheduleStatus"><option value="待排期">待排期</option><option value="进行中">进行中</option><option value="已完成">已完成</option><option value="已延期">已延期</option></select></div>
+                        <div class="form-group"><label>是否卡点</label><select id="scheduleIsBlocked" onchange="toggleBlockFields()"><option value="否">否</option><option value="是">是</option></select></div>
+                        <div id="blockFieldsGroup" style="display:none;">
+                            <div class="form-group"><label>卡点原因 <span style="color:var(--danger)">*</span></label><select id="scheduleBlockReason"><option value="">请选择</option><option value="等待外部依赖">等待外部依赖</option><option value="需求变更">需求变更</option><option value="技术方案未定">技术方案未定</option><option value="资源不足">资源不足</option><option value="等待审批">等待审批</option><option value="其他">其他</option></select></div>
+                            <div class="form-group full-width"><label>卡点详情</label><textarea id="scheduleBlockDetail" rows="2" placeholder="描述卡点的具体情况"></textarea></div>
+                        </div>
                         <div class="form-group full-width"><label>备注</label><textarea id="scheduleRemark" rows="2" placeholder="可选"></textarea></div>
                     </div>
                 </form>
@@ -1176,6 +1237,11 @@ async function handleScheduleSubmit(e) {
         endDate: document.getElementById('scheduleEndDate').value,
         progress: parseInt(document.getElementById('scheduleProgress').value) || 0,
         status: document.getElementById('scheduleStatus').value,
+        isBlocked: document.getElementById('scheduleIsBlocked').value,
+        blockReason: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockReason').value : '',
+        blockDetail: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockDetail').value.trim() : '',
+        blockedAt: document.getElementById('scheduleIsBlocked').value === '是' && !isEdit ? formatDate(new Date()) : (isEdit ? (schedules.find(s => s.id === id)?.blockedAt || '') : ''),
+        blockOwner: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleOwner').value : '',
         remark: document.getElementById('scheduleRemark').value.trim(),
         createdAt: isEdit ? undefined : `${currentUser.name} | ${formatDate(new Date())}`,
         updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
@@ -1220,7 +1286,16 @@ async function renderScheduleTable(filteredSchedules) {
     tbody.innerHTML = schedules.map(s => {
         const demandTitle = demandMap[s.demandId] || s.demandId;
         const progressColor = s.progress >= 100 ? 'var(--success)' : s.progress >= 50 ? 'var(--primary)' : 'var(--warning)';
-        return `<tr>
+        const isBlocked = s.isBlocked === '是';
+        let blockDays = 0;
+        let blockTimeClass = '';
+        if (isBlocked && s.blockedAt) {
+            const blockedDate = new Date(s.blockedAt);
+            blockDays = Math.floor((new Date() - blockedDate) / (1000 * 60 * 60 * 24));
+            if (blockDays > 7) blockTimeClass = 'block-time-danger';
+            else if (blockDays > 3) blockTimeClass = 'block-time-warning';
+        }
+        return `<tr class="${isBlocked ? 'row-blocked' : ''}">
             <td style="font-family:monospace;font-size:11px;">${s.demandId}</td>
             <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(demandTitle)}">${escapeHtml(demandTitle)}</td>
             <td>${s.role}</td>
@@ -1228,8 +1303,8 @@ async function renderScheduleTable(filteredSchedules) {
             <td>${s.startDate || '-'}</td>
             <td>${s.endDate || '-'}</td>
             <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:var(--gray-200);border-radius:3px;"><div style="width:${s.progress}%;height:100%;background:${progressColor};border-radius:3px;"></div></div><span style="font-size:11px;">${s.progress}%</span></div></td>
-            <td><span class="badge ${s.status === '已完成' ? 'badge-released' : s.status === '已延期' ? 'badge-p0' : s.status === '进行中' ? 'badge-dev' : 'badge-pending'}">${s.status}</span></td>
-            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.remark || '')}">${escapeHtml(s.remark || '-')}</td>
+            <td>${isBlocked ? `<span class="badge badge-blocked" title="${escapeHtml(s.blockReason || '')}: ${escapeHtml(s.blockDetail || '')}">🚧 卡点</span>` : `<span class="badge ${s.status === '已完成' ? 'badge-released' : s.status === '已延期' ? 'badge-p0' : s.status === '进行中' ? 'badge-dev' : 'badge-pending'}">${s.status}</span>`}</td>
+            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.remark || '')}">${isBlocked ? `<span class="${blockTimeClass}" title="卡点${blockDays}天">${s.blockReason || '卡点'}${blockDays > 3 ? ` (${blockDays}天)` : ''}</span>` : escapeHtml(s.remark || '-')}</td>
             <td><div class="action-btns">
                 <button class="action-btn edit" title="编辑" onclick="openScheduleModal('${s.id}')">✏️</button>
                 <button class="action-btn delete" title="删除" onclick="deleteSchedule('${s.id}')">🗑️</button>
@@ -1358,7 +1433,90 @@ window.addEventListener('DOMContentLoaded', async () => {
     await initCloudBase();
     if (!checkSession()) document.getElementById('loginOverlay').classList.remove('hidden');
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetailModal(); closeCreateModal(); closeReviewModal(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetailModal(); closeCreateModal(); closeReviewModal(); closeScheduleModal(); } });
+
+// ==================== BLOCKED FIELDS TOGGLE ====================
+function toggleBlockFields() {
+    const isBlocked = document.getElementById('scheduleIsBlocked').value === '是';
+    document.getElementById('blockFieldsGroup').style.display = isBlocked ? '' : 'none';
+}
+
+// ==================== PERSON DASHBOARD ====================
+async function renderPersonDashboard() {
+    const schedules = getSchedules();
+    const demands = await getDemands();
+    const demandMap = {};
+    demands.forEach(d => { demandMap[d.id] = d.title; });
+
+    const roleFilter = document.getElementById('personFilterRole')?.value || '';
+    let filteredSchedules = roleFilter ? schedules.filter(s => s.role === roleFilter) : schedules;
+
+    // 按责任人聚合
+    const personMap = {};
+    filteredSchedules.forEach(s => {
+        if (!personMap[s.owner]) {
+            personMap[s.owner] = { total: 0, inProgress: 0, blocked: 0, completed: 0, tasks: [] };
+        }
+        const p = personMap[s.owner];
+        p.total++;
+        if (s.isBlocked === '是') { p.blocked++; }
+        else if (s.status === '已完成') { p.completed++; }
+        else if (s.status === '进行中') { p.inProgress++; }
+        p.tasks.push(s);
+    });
+
+    const container = document.getElementById('personDashboard');
+    if (Object.keys(personMap).length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>暂无排期数据</p></div>';
+        return;
+    }
+
+    let html = '';
+    const sortedPersons = Object.entries(personMap).sort((a, b) => b[1].blocked - a[1].blocked || b[1].total - a[1].total);
+
+    sortedPersons.forEach(([name, data]) => {
+        const initials = name.substring(0, 1);
+        html += `<div class="person-card">`;
+        html += `<div class="person-card-header">`;
+        html += `<div class="person-avatar">${initials}</div>`;
+        html += `<div><div class="person-name">${escapeHtml(name)}</div></div>`;
+        html += `</div>`;
+
+        html += `<div class="person-stats">`;
+        html += `<div class="person-stat"><div class="person-stat-num">${data.total}</div><div class="person-stat-label">总任务</div></div>`;
+        html += `<div class="person-stat"><div class="person-stat-num" style="color:var(--primary)">${data.inProgress}</div><div class="person-stat-label">进行中</div></div>`;
+        html += `<div class="person-stat"><div class="person-stat-num" style="color:var(--danger)">${data.blocked}</div><div class="person-stat-label">卡点</div></div>`;
+        html += `<div class="person-stat"><div class="person-stat-num" style="color:var(--success)">${data.completed}</div><div class="person-stat-label">已完成</div></div>`;
+        html += `</div>`;
+
+        // 任务列表
+        html += `<div class="person-task-list">`;
+        data.tasks.forEach(s => {
+            const demandTitle = demandMap[s.demandId] || s.demandId;
+            const isBlocked = s.isBlocked === '是';
+            let blockInfo = '';
+            if (isBlocked && s.blockedAt) {
+                const blockDays = Math.floor((new Date() - new Date(s.blockedAt)) / (1000 * 60 * 60 * 24));
+                const cls = blockDays > 7 ? 'block-time-danger' : blockDays > 3 ? 'block-time-warning' : '';
+                blockInfo = `<span class="${cls}" style="margin-left:4px;">🚧 ${s.blockReason || '卡点'}${blockDays > 3 ? ` (${blockDays}天)` : ''}</span>`;
+            }
+            const statusClass = isBlocked ? 'badge-blocked-light' : s.status === '已完成' ? 'badge-released' : s.status === '进行中' ? 'badge-dev' : 'badge-pending';
+            html += `<div class="person-task-item ${isBlocked ? 'blocked' : ''}">`;
+            html += `<span class="person-task-id">${s.demandId}</span>`;
+            html += `<span class="person-task-title">${escapeHtml(demandTitle)}</span>`;
+            html += `<span class="badge ${statusClass} person-task-status">${isBlocked ? '卡点' : s.status}</span>`;
+            html += blockInfo;
+            html += `</div>`;
+        });
+        html += `</div>`;
+        html += `</div>`;
+    });
+
+    container.innerHTML = html;
+}
+
+// Bind role filter change
+document.getElementById('personFilterRole')?.addEventListener('change', renderPersonDashboard);
 
 // Clear test data
 localStorage.removeItem(STORAGE_KEY_DEMANDS);
