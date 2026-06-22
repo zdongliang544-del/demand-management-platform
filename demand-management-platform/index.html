@@ -1316,6 +1316,8 @@ async function handleScheduleSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('editScheduleId').value || 'SCH' + Date.now().toString(36).toUpperCase();
     const isEdit = !!document.getElementById('editScheduleId').value;
+    const schedules = getSchedules();
+    const existingSchedule = isEdit ? schedules.find(s => s.id === id) : null;
 
     const schedule = {
         id,
@@ -1329,19 +1331,17 @@ async function handleScheduleSubmit(e) {
         isBlocked: document.getElementById('scheduleIsBlocked').value,
         blockReason: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockReason').value : '',
         blockDetail: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockDetail').value.trim() : '',
-        blockedAt: document.getElementById('scheduleIsBlocked').value === '是' && !isEdit ? formatDate(new Date()) : (isEdit ? (schedules.find(s => s.id === id)?.blockedAt || '') : ''),
+        blockedAt: document.getElementById('scheduleIsBlocked').value === '是' && !isEdit ? formatDate(new Date()) : (isEdit ? (existingSchedule?.blockedAt || '') : ''),
         blockOwner: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleOwner').value : '',
         prdUrl: document.getElementById('schedulePrdUrl').value.trim(),
         yunxiaoUrl: document.getElementById('scheduleYunxiaoUrl').value.trim(),
         remark: document.getElementById('scheduleRemark').value.trim(),
-        createdAt: isEdit ? undefined : `${currentUser.name} | ${formatDate(new Date())}`,
+        createdAt: isEdit ? (existingSchedule?.createdAt || '') : `${currentUser.name} | ${formatDate(new Date())}`,
         updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
     };
-
-    const schedules = getSchedules();
     if (isEdit) {
         const idx = schedules.findIndex(s => s.id === id);
-        if (idx !== -1) { schedule.createdAt = schedules[idx].createdAt; schedules[idx] = schedule; }
+        if (idx !== -1) { schedules[idx] = schedule; }
     } else {
         schedules.unshift(schedule);
     }
