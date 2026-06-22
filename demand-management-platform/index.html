@@ -280,6 +280,12 @@
             <a id="navPerson" onclick="switchPage('person')">
                 <span>👥</span> 人员看板
             </a>
+            <a id="navMyTasks" onclick="switchPage('mytasks')">
+                <span>📝</span> 我的任务
+            </a>
+            <a id="navReports" onclick="switchPage('reports')">
+                <span>📈</span> 报告生成
+            </a>
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
             </a>
@@ -494,6 +500,80 @@
                 <div id="personDashboard"></div>
             </div>
         </div>
+
+        <!-- 我的任务页 -->
+        <div id="pageMyTasks" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>📝 我的任务</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="exportMyTasksMarkdown()">📥 导出Markdown</button>
+                    <button class="btn btn-secondary btn-sm" onclick="switchPage('list')">← 返回列表</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div class="filter-bar">
+                    <div class="filter-item">
+                        <label>状态</label>
+                        <select id="myTaskFilterStatus">
+                            <option value="">全部</option>
+                            <option value="进行中">进行中</option>
+                            <option value="待排期">待排期</option>
+                            <option value="已完成">已完成</option>
+                            <option value="已延期">已延期</option>
+                            <option value="卡点">卡点</option>
+                        </select>
+                    </div>
+                    <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="renderMyTasks()">刷新</button></div>
+                </div>
+                <div id="myTasksContent"></div>
+            </div>
+        </div>
+
+        <!-- 报告生成页 -->
+        <div id="pageReports" class="page-section" style="display:none;">
+            <div class="page-header">
+                <h1>📈 报告生成</h1>
+                <div class="page-header-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="switchPage('list')">← 返回列表</button>
+                </div>
+            </div>
+            <div class="page-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <!-- 周报告 -->
+                    <div class="card">
+                        <div class="card-header"><h3>📅 每周需求汇总报告</h3></div>
+                        <div class="card-body">
+                            <p style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">按产品经理维度汇总本周需求进展，包含正在跟进、本周发布、下周计划和卡点情况。</p>
+                            <div class="form-group">
+                                <label>选择产品经理</label>
+                                <select id="weeklyReportPm">
+                                    <option value="">全部PM</option>
+                                    <option value="朱黎">朱黎</option>
+                                    <option value="张栋良">张栋良</option>
+                                    <option value="彭程硕">彭程硕</option>
+                                    <option value="李思开">李思开</option>
+                                    <option value="孙佳俊">孙佳俊</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" onclick="generateWeeklyReport()" style="width:100%;">生成周报告</button>
+                        </div>
+                    </div>
+                    <!-- 月度报告 -->
+                    <div class="card">
+                        <div class="card-header"><h3>📊 月度上线报告</h3></div>
+                        <div class="card-body">
+                            <p style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">按国家维度汇总本月上线内容，方便同步给国家业务经理。</p>
+                            <div class="form-group">
+                                <label>选择月份</label>
+                                <input type="month" id="monthlyReportMonth" style="width:100%;">
+                            </div>
+                            <button class="btn btn-primary" onclick="generateMonthlyReport()" style="width:100%;">生成月度报告</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="reportPreview" style="margin-top:20px;"></div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -701,6 +781,8 @@ function switchPage(page) {
         if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
         else if (page === 'schedule') { document.getElementById('pageSchedule').style.display = ''; document.getElementById('navSchedule').classList.add('active'); renderScheduleTable(); }
         else if (page === 'person') { document.getElementById('pagePerson').style.display = ''; document.getElementById('navPerson').classList.add('active'); renderPersonDashboard(); }
+        else if (page === 'mytasks') { document.getElementById('pageMyTasks').style.display = ''; document.getElementById('navMyTasks').classList.add('active'); renderMyTasks(); }
+        else if (page === 'reports') { document.getElementById('pageReports').style.display = ''; document.getElementById('navReports').classList.add('active'); initReportPage(); }
         else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); }
         hideLoading();
     }, 300);
@@ -1177,6 +1259,8 @@ function openScheduleModal(id = null) {
             document.getElementById('scheduleIsBlocked').value = s.isBlocked || '否';
             document.getElementById('scheduleBlockReason').value = s.blockReason || '';
             document.getElementById('scheduleBlockDetail').value = s.blockDetail || '';
+            document.getElementById('schedulePrdUrl').value = s.prdUrl || '';
+            document.getElementById('scheduleYunxiaoUrl').value = s.yunxiaoUrl || '';
             document.getElementById('scheduleRemark').value = s.remark || '';
             toggleBlockFields();
         }
@@ -1208,6 +1292,8 @@ function createScheduleModal() {
                             <div class="form-group"><label>卡点原因 <span style="color:var(--danger)">*</span></label><select id="scheduleBlockReason"><option value="">请选择</option><option value="等待外部依赖">等待外部依赖</option><option value="需求变更">需求变更</option><option value="技术方案未定">技术方案未定</option><option value="资源不足">资源不足</option><option value="等待审批">等待审批</option><option value="其他">其他</option></select></div>
                             <div class="form-group full-width"><label>卡点详情</label><textarea id="scheduleBlockDetail" rows="2" placeholder="描述卡点的具体情况"></textarea></div>
                         </div>
+                        <div class="form-group full-width"><label>PRD 地址</label><input type="url" id="schedulePrdUrl" placeholder="https://..."></div>
+                        <div class="form-group full-width"><label>云效地址</label><input type="url" id="scheduleYunxiaoUrl" placeholder="https://..."></div>
                         <div class="form-group full-width"><label>备注</label><textarea id="scheduleRemark" rows="2" placeholder="可选"></textarea></div>
                     </div>
                 </form>
@@ -1242,6 +1328,8 @@ async function handleScheduleSubmit(e) {
         blockDetail: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockDetail').value.trim() : '',
         blockedAt: document.getElementById('scheduleIsBlocked').value === '是' && !isEdit ? formatDate(new Date()) : (isEdit ? (schedules.find(s => s.id === id)?.blockedAt || '') : ''),
         blockOwner: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleOwner').value : '',
+        prdUrl: document.getElementById('schedulePrdUrl').value.trim(),
+        yunxiaoUrl: document.getElementById('scheduleYunxiaoUrl').value.trim(),
         remark: document.getElementById('scheduleRemark').value.trim(),
         createdAt: isEdit ? undefined : `${currentUser.name} | ${formatDate(new Date())}`,
         updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
@@ -1517,6 +1605,318 @@ async function renderPersonDashboard() {
 
 // Bind role filter change
 document.getElementById('personFilterRole')?.addEventListener('change', renderPersonDashboard);
+
+// ==================== MY TASKS ====================
+async function renderMyTasks() {
+    const schedules = getSchedules();
+    const demands = await getDemands();
+    const demandMap = {};
+    demands.forEach(d => { demandMap[d.id] = d.title; });
+
+    // 筛选当前用户的任务
+    const mySchedules = schedules.filter(s => s.owner === currentUser.name);
+
+    const statusFilter = document.getElementById('myTaskFilterStatus')?.value || '';
+    let filtered = statusFilter === '卡点'
+        ? mySchedules.filter(s => s.isBlocked === '是')
+        : statusFilter
+            ? mySchedules.filter(s => s.status === statusFilter && s.isBlocked !== '是')
+            : mySchedules;
+
+    const container = document.getElementById('myTasksContent');
+    if (filtered.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>暂无任务</p></div>';
+        return;
+    }
+
+    // 按状态分组
+    const groups = { '进行中': [], '待排期': [], '卡点': [], '已完成': [], '已延期': [] };
+    filtered.forEach(s => {
+        if (s.isBlocked === '是') groups['卡点'].push(s);
+        else if (groups[s.status]) groups[s.status].push(s);
+        else groups['进行中'].push(s);
+    });
+
+    let html = '';
+    const groupOrder = ['卡点', '进行中', '待排期', '已延期', '已完成'];
+    const groupIcons = { '卡点': '🚧', '进行中': '🔄', '待排期': '⏳', '已完成': '✅', '已延期': '⚠️' };
+    const groupColors = { '卡点': 'var(--danger)', '进行中': 'var(--primary)', '待排期': 'var(--warning)', '已完成': 'var(--success)', '已延期': 'var(--danger)' };
+
+    // 统计卡片
+    html += '<div class="stats-grid" style="margin-bottom:20px;">';
+    html += `<div class="stat-card"><div class="stat-value">${mySchedules.length}</div><div class="stat-label">总任务</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--danger)">${groups['卡点'].length}</div><div class="stat-label">卡点</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--primary)">${groups['进行中'].length}</div><div class="stat-label">进行中</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--success)">${groups['已完成'].length}</div><div class="stat-label">已完成</div></div>`;
+    html += '</div>';
+
+    groupOrder.forEach(status => {
+        if (groups[status].length === 0) return;
+        html += `<div class="card" style="margin-bottom:12px;">`;
+        html += `<div class="card-header"><h3 style="color:${groupColors[status]}">${groupIcons[status]} ${status} (${groups[status].length})</h3></div>`;
+        html += `<div class="card-body" style="padding:0;">`;
+        groups[status].forEach(s => {
+            const demandTitle = demandMap[s.demandId] || s.demandId;
+            const isBlocked = s.isBlocked === '是';
+            let blockInfo = '';
+            if (isBlocked && s.blockedAt) {
+                const blockDays = Math.floor((new Date() - new Date(s.blockedAt)) / (1000 * 60 * 60 * 24));
+                const cls = blockDays > 7 ? 'block-time-danger' : blockDays > 3 ? 'block-time-warning' : '';
+                blockInfo = `<span class="${cls}" style="margin-left:8px;font-size:11px;">🚧 ${s.blockReason || '卡点'}${blockDays > 3 ? ` (${blockDays}天)` : ''}</span>`;
+            }
+            html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--gray-100);">`;
+            html += `<span style="font-family:monospace;font-size:11px;color:var(--gray-500);min-width:50px;">${s.demandId}</span>`;
+            html += `<span style="flex:1;font-size:13px;">${escapeHtml(demandTitle)}</span>`;
+            if (s.prdUrl) html += `<a href="${escapeHtml(s.prdUrl)}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:11px;padding:4px 8px;">📄 PRD</a>`;
+            if (s.yunxiaoUrl) html += `<a href="${escapeHtml(s.yunxiaoUrl)}" target="_blank" class="btn btn-sm btn-secondary" style="font-size:11px;padding:4px 8px;">📋 云效</a>`;
+            html += `<span style="font-size:11px;color:var(--gray-500);">${s.startDate || ''} ~ ${s.endDate || ''}</span>`;
+            html += `<div style="width:60px;"><div style="height:4px;background:var(--gray-200);border-radius:2px;"><div style="width:${s.progress}%;height:100%;background:${s.progress >= 100 ? 'var(--success)' : 'var(--primary)'};border-radius:2px;"></div></div><div style="text-align:center;font-size:10px;color:var(--gray-500);">${s.progress}%</div></div>`;
+            html += blockInfo;
+            html += '</div>';
+        });
+        html += '</div></div>';
+    });
+
+    container.innerHTML = html;
+}
+
+function exportMyTasksMarkdown() {
+    const schedules = getSchedules().filter(s => s.owner === currentUser.name);
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() + 1);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    let md = `# ${currentUser.name} 本周任务汇总\n\n`;
+    md += `> 生成时间: ${formatDate(now)}\n\n`;
+
+    // 按状态分组
+    const blocked = schedules.filter(s => s.isBlocked === '是');
+    const inProgress = schedules.filter(s => s.status === '进行中' && s.isBlocked !== '是');
+    const upcoming = schedules.filter(s => s.status === '待排期' && s.isBlocked !== '是');
+    const completed = schedules.filter(s => s.status === '已完成' && s.isBlocked !== '是');
+
+    if (blocked.length > 0) {
+        md += `## 🚧 卡点 (${blocked.length})\n\n`;
+        blocked.forEach(s => {
+            md += `- **${s.demandId}** ${s.blockReason || '卡点'}: ${s.blockDetail || '-'}\n`;
+        });
+        md += '\n';
+    }
+
+    if (inProgress.length > 0) {
+        md += `## 🔄 进行中 (${inProgress.length})\n\n`;
+        inProgress.forEach(s => {
+            md += `- **${s.demandId}** 进度 ${s.progress}% (${s.startDate || ''} ~ ${s.endDate || ''})\n`;
+        });
+        md += '\n';
+    }
+
+    if (upcoming.length > 0) {
+        md += `## ⏳ 待排期 (${upcoming.length})\n\n`;
+        upcoming.forEach(s => {
+            md += `- **${s.demandId}** 预计 ${s.startDate || '待定'}\n`;
+        });
+        md += '\n';
+    }
+
+    md += `---\n*共 ${schedules.length} 个任务*\n`;
+
+    // 下载
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `任务汇总_${currentUser.name}_${now.toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Markdown 已导出', 'success');
+}
+
+// Bind filter change
+document.getElementById('myTaskFilterStatus')?.addEventListener('change', renderMyTasks);
+
+// ==================== REPORTS ====================
+function initReportPage() {
+    // 设置默认月份为当前月
+    const now = new Date();
+    const monthInput = document.getElementById('monthlyReportMonth');
+    if (monthInput) {
+        monthInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    }
+}
+
+async function generateWeeklyReport() {
+    const schedules = getSchedules();
+    const demands = await getDemands();
+    const demandMap = {};
+    demands.forEach(d => { demandMap[d.id] = d; });
+
+    const pmFilter = document.getElementById('weeklyReportPm')?.value || '';
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - now.getDay() + 1);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    let filtered = pmFilter
+        ? schedules.filter(s => s.owner === pmFilter)
+        : schedules;
+
+    // 分类
+    const blocked = filtered.filter(s => s.isBlocked === '是');
+    const inProgress = filtered.filter(s => s.status === '进行中' && s.isBlocked !== '是');
+    const thisWeek = filtered.filter(s => {
+        if (!s.endDate || s.isBlocked === '是') return false;
+        const end = new Date(s.endDate);
+        return end >= weekStart && end <= weekEnd && s.status !== '已完成';
+    });
+    const nextWeek = filtered.filter(s => {
+        if (!s.startDate || s.isBlocked === '是') return false;
+        const start = new Date(s.startDate);
+        return start > weekEnd && start <= new Date(weekEnd.getTime() + 7 * 24 * 60 * 60 * 1000);
+    });
+
+    let html = '<div class="card"><div class="card-header"><h3>📅 每周需求汇总报告</h3></div><div class="card-body">';
+    html += `<p style="color:var(--gray-500);font-size:12px;margin-bottom:16px;">${weekStart.toISOString().slice(0, 10)} ~ ${weekEnd.toISOString().slice(0, 10)} | ${pmFilter || '全部PM'}</p>`;
+
+    if (blocked.length > 0) {
+        html += `<h4 style="color:var(--danger);margin:16px 0 8px;">🚧 卡点 (${blocked.length})</h4>`;
+        blocked.forEach(s => {
+            const d = demandMap[s.demandId];
+            html += `<div style="padding:8px 12px;background:var(--danger-light);border-radius:6px;margin-bottom:6px;font-size:13px;">`;
+            html += `<strong>${s.demandId}</strong> ${escapeHtml(d?.title || s.demandId)} — ${s.blockReason || '卡点'}: ${s.blockDetail || '-'}`;
+            html += `</div>`;
+        });
+    }
+
+    if (inProgress.length > 0) {
+        html += `<h4 style="color:var(--primary);margin:16px 0 8px;">🔄 正在跟进 (${inProgress.length})</h4>`;
+        inProgress.forEach(s => {
+            const d = demandMap[s.demandId];
+            html += `<div style="padding:8px 12px;border:1px solid var(--gray-200);border-radius:6px;margin-bottom:6px;font-size:13px;">`;
+            html += `<strong>${s.demandId}</strong> ${escapeHtml(d?.title || s.demandId)} — ${s.progress}% (${s.startDate || ''} ~ ${s.endDate || ''})`;
+            html += `</div>`;
+        });
+    }
+
+    if (thisWeek.length > 0) {
+        html += `<h4 style="color:var(--success);margin:16px 0 8px;">✅ 本周发布 (${thisWeek.length})</h4>`;
+        thisWeek.forEach(s => {
+            const d = demandMap[s.demandId];
+            html += `<div style="padding:8px 12px;border:1px solid var(--success-light);border-radius:6px;margin-bottom:6px;font-size:13px;">`;
+            html += `<strong>${s.demandId}</strong> ${escapeHtml(d?.title || s.demandId)} — 截止 ${s.endDate}`;
+            html += `</div>`;
+        });
+    }
+
+    if (nextWeek.length > 0) {
+        html += `<h4 style="color:var(--warning);margin:16px 0 8px;">⏳ 下周跟进 (${nextWeek.length})</h4>`;
+        nextWeek.forEach(s => {
+            const d = demandMap[s.demandId];
+            html += `<div style="padding:8px 12px;border:1px solid var(--warning-light);border-radius:6px;margin-bottom:6px;font-size:13px;">`;
+            html += `<strong>${s.demandId}</strong> ${escapeHtml(d?.title || s.demandId)} — 计划 ${s.startDate}`;
+            html += `</div>`;
+        });
+    }
+
+    html += `<div style="margin-top:16px;text-align:center;"><button class="btn btn-secondary btn-sm" onclick="downloadReport('weekly')">📥 下载Markdown</button></div>`;
+    html += '</div></div>';
+
+    document.getElementById('reportPreview').innerHTML = html;
+    window._lastReport = { type: 'weekly', data: { blocked, inProgress, thisWeek, nextWeek, pm: pmFilter || '全部', weekStart, weekEnd } };
+}
+
+async function generateMonthlyReport() {
+    const demands = await getDemands();
+    const month = document.getElementById('monthlyReportMonth')?.value;
+    if (!month) { showToast('请选择月份', 'error'); return; }
+
+    // 筛选该月上线的需求
+    const launched = demands.filter(d => d.launchDate && d.launchDate.startsWith(month));
+    if (launched.length === 0) {
+        document.getElementById('reportPreview').innerHTML = '<div class="empty-state"><p>该月暂无上线需求</p></div>';
+        return;
+    }
+
+    // 按国家分组
+    const countryMap = {};
+    launched.forEach(d => {
+        const countries = d.appliedCountryList || [d.appliedCountry || '未知'];
+        countries.forEach(c => {
+            if (!countryMap[c]) countryMap[c] = [];
+            countryMap[c].push(d);
+        });
+    });
+
+    let html = '<div class="card"><div class="card-header"><h3>📊 月度上线报告</h3></div><div class="card-body">';
+    html += `<p style="color:var(--gray-500);font-size:12px;margin-bottom:16px;">${month} | 共 ${launched.length} 个需求上线</p>`;
+
+    Object.entries(countryMap).sort((a, b) => b[1].length - a[1].length).forEach(([country, items]) => {
+        html += `<h4 style="margin:16px 0 8px;">🌍 ${country} (${items.length})</h4>`;
+        items.forEach(d => {
+            html += `<div style="padding:8px 12px;border:1px solid var(--gray-200);border-radius:6px;margin-bottom:6px;font-size:13px;">`;
+            html += `<strong>${d.id}</strong> ${escapeHtml(d.title)} — ${(d.pmList || []).join(',')} — ${d.launchDate || '-'}`;
+            html += `</div>`;
+        });
+    });
+
+    html += `<div style="margin-top:16px;text-align:center;"><button class="btn btn-secondary btn-sm" onclick="downloadReport('monthly')">📥 下载Markdown</button></div>`;
+    html += '</div></div>';
+
+    document.getElementById('reportPreview').innerHTML = html;
+    window._lastReport = { type: 'monthly', data: { month, countryMap, launched } };
+}
+
+function downloadReport(type) {
+    const report = window._lastReport;
+    if (!report) return;
+
+    let md = '';
+    if (type === 'weekly') {
+        const d = report.data;
+        md = `# 每周需求汇总报告\n\n`;
+        md += `> ${d.weekStart.toISOString().slice(0, 10)} ~ ${d.weekEnd.toISOString().slice(0, 10)} | ${d.pm}\n\n`;
+        if (d.blocked.length) {
+            md += `## 🚧 卡点 (${d.blocked.length})\n\n`;
+            d.blocked.forEach(s => { md += `- **${s.demandId}** ${s.blockReason || '卡点'}: ${s.blockDetail || '-'}\n`; });
+            md += '\n';
+        }
+        if (d.inProgress.length) {
+            md += `## 🔄 正在跟进 (${d.inProgress.length})\n\n`;
+            d.inProgress.forEach(s => { md += `- **${s.demandId}** ${s.progress}% (${s.startDate || ''} ~ ${s.endDate || ''})\n`; });
+            md += '\n';
+        }
+        if (d.thisWeek.length) {
+            md += `## ✅ 本周发布 (${d.thisWeek.length})\n\n`;
+            d.thisWeek.forEach(s => { md += `- **${s.demandId}** 截止 ${s.endDate}\n`; });
+            md += '\n';
+        }
+        if (d.nextWeek.length) {
+            md += `## ⏳ 下周跟进 (${d.nextWeek.length})\n\n`;
+            d.nextWeek.forEach(s => { md += `- **${s.demandId}** 计划 ${s.startDate}\n`; });
+        }
+    } else if (type === 'monthly') {
+        const d = report.data;
+        md = `# ${d.month} 月度上线报告\n\n`;
+        md += `> 共 ${d.launched.length} 个需求上线\n\n`;
+        Object.entries(d.countryMap).sort((a, b) => b[1].length - a[1].length).forEach(([country, items]) => {
+            md += `## 🌍 ${country} (${items.length})\n\n`;
+            items.forEach(item => { md += `- **${item.id}** ${item.title} — ${(item.pmList || []).join(',')} — ${item.launchDate || '-'}\n`; });
+            md += '\n';
+        });
+    }
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type === 'weekly' ? '周报告' : '月度报告'}_${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('报告已导出', 'success');
+}
 
 // Clear test data
 localStorage.removeItem(STORAGE_KEY_DEMANDS);

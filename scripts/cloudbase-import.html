@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CloudBase 批量导入工具</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        #log { margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px; max-height: 400px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h2>CloudBase 批量导入工具</h2>
+    <p>点击按钮将 71 条需求导入到 CloudBase demands 集合</p>
+
+    <button id="importBtn" onclick="startImport()">开始导入</button>
+    <div id="status"></div>
+    <div id="log"></div>
+
+    <script src="https://unpkg.com/@cloudbase/js-sdk@2/dist/index.umd.js"></script>
+    <script>
+    const ENVID = 'cloud1-5g3f30lo8cd2237e';
+
+    // 需求数据（内联）
+    let demandsData = null;
+
+    async function loadDemands() {
+        const resp = await fetch('./demand-migration-data.json');
+        demandsData = await resp.json();
+    }
+
+    function log(msg, type = 'info') {
+        const logDiv = document.getElementById('log');
+        const line = document.createElement('div');
+        line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logDiv.appendChild(line);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function setStatus(msg, type) {
+        document.getElementById('status').innerHTML = `<div class="status ${type}">${msg}</div>`;
+    }
+
+    async function startImport() {
+        if (!demandsData) {
+            try {
+                await loadDemands();
+            } catch (e) {
+                setStatus('无法加载 demand-migration-data.json，请确保文件在同目录下', 'error');
+                return;
+            }
+        }
+
+        const btn = document.getElementById('importBtn');
+        btn.disabled = true;
+        btn.textContent = '导入中...';
+
+        try {
+            // 初始化 CloudBase
+            const app = cloudbase.init({ env: ENVID });
+            const auth = app.auth({ persistence: 'local' });
+
+            setStatus('正在匿名登录...', 'info');
+            await auth.signInAnonymously();
+            log('匿名登录成功');
+
+            const db = app.database();
+            const collection = db.collection('demands');
+
+            // 查询现有数量
+            const countRes = await collection.count();
+            log(`现有数据量: ${countRes.total} 条`);
+
+            let success = 0, fail = 0;
+            const batchSize = 10;
+
+            for (let i = 0; i < demandsData.length; i += batchSize) {
+                const batch = demandsData.slice(i, i + batchSize);
+                log(`写入第 ${i + 1}-${Math.min(i + batchSize, demandsData.length)} 条...`);
+
+                for (const demand of batch) {
+                    try {
+                        await collection.add(demand);
+                        success++;
+                    } catch (err) {
+                        log(`写入失败 [${demand.id}]: ${err.message}`, 'error');
+                        fail++;
+                    }
+                }
+
+                log(`  进度: 成功 ${success}, 失败 ${fail}`);
+            }
+
+            setStatus(`导入完成! 成功: ${success}, 失败: ${fail}`, 'success');
+
+        } catch (err) {
+            setStatus(`导入失败: ${err.message}`, 'error');
+            log(`错误: ${err.message}`, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '重新导入';
+        }
+    }
+
+    // 自动加载数据
+    loadDemands().then(() => log(`已加载 ${demandsData.length} 条需求数据`)).catch(() => {
+        log('注意: demand-migration-data.json 未找到，点击导入时会尝试加载');
+    });
+    </script>
+</body>
+</html>
