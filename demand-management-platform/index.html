@@ -872,7 +872,7 @@ async function saveReviews(reviews) {
 function generateId() { return 'DM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(); }
 
 // ==================== CREATE/EDIT MODAL ====================
-function openCreateModal(id = null) {
+async function openCreateModal(id = null) {
     editingDemandId = id;
     document.getElementById('createModalTitle').textContent = id ? '编辑需求' : '新建需求';
     document.getElementById('submitBtn').textContent = id ? '更新需求' : '提交需求';
@@ -894,7 +894,7 @@ function openCreateModal(id = null) {
     initMultiSelect('msProposerCountry', MULTI_SELECT_OPTIONS.proposerCountry);
 
     if (id) {
-        const demands = getDemands();
+        const demands = await getDemands();
         const d = demands.find(x => x.id === id);
         if (d) {
             document.getElementById('fieldType').value = d.type;
@@ -1006,7 +1006,7 @@ async function handleDemandSubmit(e) {
     return false;
 }
 
-function editDemand(id) { openCreateModal(id); }
+async function editDemand(id) { await openCreateModal(id); }
 
 async function deleteDemand(id) {
     if (!confirm('确定要删除这条需求吗？此操作不可恢复。')) return;
