@@ -234,6 +234,39 @@
         .person-task-id { font-family: monospace; font-size: 11px; color: var(--gray-500); min-width: 50px; }
         .person-task-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .person-task-status { font-size: 11px; }
+
+        /* Pagination */
+        .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--gray-200); flex-wrap: wrap; gap: 8px; }
+        .pagination-info { font-size: 12px; color: var(--gray-500); }
+        .pagination-controls { display: flex; align-items: center; gap: 4px; }
+        .pagination-controls button { min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--gray-300); background: white; color: var(--gray-700); border-radius: 4px; font-size: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+        .pagination-controls button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+        .pagination-controls button.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .pagination-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .pagination-size select { padding: 4px 8px; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 12px; background: white; }
+
+        /* Connection status indicator */
+        .connection-status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .connection-status.online { background: var(--success-light); color: var(--success); }
+        .connection-status.offline { background: var(--danger-light); color: var(--danger); }
+        .connection-status .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .connection-status.online .dot { background: var(--success); }
+        .connection-status.offline .dot { background: var(--danger); }
+
+        /* Toast with retry button */
+        .toast-with-retry { display: flex; align-items: center; gap: 12px; }
+        .toast-retry-btn { padding: 4px 10px; border: 1px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.2); color: white; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: 600; }
+        .toast-retry-btn:hover { background: rgba(255,255,255,0.3); }
+
+        /* Form field group collapse */
+        .form-section-group { border: 1px solid var(--gray-200); border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+        .form-section-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--gray-50); cursor: pointer; user-select: none; transition: background 0.2s; }
+        .form-section-header:hover { background: var(--gray-100); }
+        .form-section-header h4 { font-size: 13px; font-weight: 600; color: var(--gray-700); display: flex; align-items: center; gap: 6px; }
+        .form-section-header .toggle-icon { font-size: 12px; color: var(--gray-400); transition: transform 0.3s; }
+        .form-section-header .toggle-icon.collapsed { transform: rotate(-90deg); }
+        .form-section-body { padding: 16px; transition: max-height 0.3s ease, padding 0.3s ease; overflow: hidden; }
+        .form-section-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; }
     </style>
 </head>
 <body>
@@ -268,6 +301,7 @@
             <h2>需求管理平台</h2>
             <div class="workspace-badge">📱 手机分销</div>
             <div class="user-info" id="sidebarUserInfo"></div>
+            <div class="connection-status online" id="connectionStatus"><span class="dot"></span> 已连接</div>
         </div>
         <nav class="sidebar-nav">
             <div class="nav-section">工作区</div>
@@ -288,6 +322,10 @@
             </a>
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
+            </a>
+            <a id="navBlockReminder" onclick="switchPage('schedule')" style="position:relative;">
+                <span>🚧</span> 卡点提醒
+                <span id="blockReminderBadge" class="badge badge-p0" style="display:none;margin-left:auto;font-size:10px;">0</span>
             </a>
             <div style="padding:8px 16px;margin-top:8px;">
                 <button class="btn btn-sm" style="width:100%;background:var(--warning);color:white;font-size:11px;" onclick="batchImportDemands()">📥 导入语雀数据</button>
@@ -356,6 +394,26 @@
                             </table>
                         </div>
                         <div id="emptyState" class="empty-state"><div class="icon">📭</div><p>暂无需求数据</p><button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button></div>
+                        <div id="paginationBar" class="pagination-bar" style="display:none;">
+                            <div class="pagination-info">
+                                共 <span id="paginationTotal">0</span> 条，第 <span id="paginationCurrent">1</span>/<span id="paginationPages">1</span> 页
+                            </div>
+                            <div class="pagination-controls">
+                                <button onclick="goToPage(1)" id="btnFirst" title="首页">«</button>
+                                <button onclick="goToPage(currentDemandPage-1)" id="btnPrev" title="上一页">‹</button>
+                                <span id="paginationNumbers"></span>
+                                <button onclick="goToPage(currentDemandPage+1)" id="btnNext" title="下一页">›</button>
+                                <button onclick="goToPage(totalDemandPages)" id="btnLast" title="末页">»</button>
+                            </div>
+                            <div class="pagination-size">
+                                每页 <select id="pageSizeSelect" onchange="changePageSize(this.value)">
+                                    <option value="10">10</option>
+                                    <option value="20" selected>20</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select> 条
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -596,28 +654,48 @@
         <div class="modal-body">
             <form id="demandForm" onsubmit="return handleDemandSubmit(event)">
                 <input type="hidden" id="editDemandId" value="">
-                <div class="form-grid">
-                    <div class="form-group"><label>类型 <span style="color:var(--danger)">*</span></label><select id="fieldType" required><option value="">请选择</option><option value="平台">平台</option><option value="业务">业务</option></select></div>
-                    <div class="form-group"><label>端 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msPlatform"></div></div>
-                    <div class="form-group"><label>角色 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msRole"></div></div>
-                    <div class="form-group"><label>关联模块 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msModule"></div></div>
-                    <div class="form-group"><label>已应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msAppliedCountry"></div></div>
-                    <div class="form-group"><label>需要应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msNeedCountry"></div></div>
-                    <div class="form-group full-width"><label>需求标题 <span style="color:var(--danger)">*</span></label><input type="text" id="fieldTitle" maxlength="30" placeholder="限制30字" required><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="titleCharCount">0</span>/30</div></div>
-                    <div class="form-group full-width"><label>需求内容 <span style="color:var(--danger)">*</span></label><textarea id="fieldContent" rows="3" placeholder="可输入文本、链接或图片地址" required></textarea></div>
-                    <div class="form-group full-width"><label>需求价值</label><textarea id="fieldValue" rows="2" maxlength="100" placeholder="描述该需求的业务价值，限制100字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="valueCharCount">0</span>/100</div></div>
-                    <div class="form-group"><label>需求提出国家</label><div class="multi-select" id="msProposerCountry"></div></div>
-                    <div class="form-group"><label>需求提出人</label><input type="text" id="fieldProposerName" placeholder="提出人姓名"></div>
-                    <div class="form-group"><label>登记信息</label><input type="text" id="fieldRegInfo" readonly style="background:var(--gray-50)"></div>
-                    <div class="form-group"><label>业务预期时间</label><input type="date" id="fieldExpectDate"></div>
-                    <div class="form-group"><label>上线时间</label><input type="date" id="fieldLaunchDate"></div>
-                    <div class="form-group"><label>当前状态 <span style="color:var(--danger)">*</span></label><select id="fieldStatus" required><option value="">请选择</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select></div>
-                    <div class="form-group"><label>优先级 <span style="color:var(--danger)">*</span></label><select id="fieldPriority" required><option value="">请选择</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></div>
-                    <div class="form-group"><label>能力形式</label><select id="fieldCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
-                    <div class="form-group full-width"><label>产品PM <span style="color:var(--danger)">*</span></label><div class="checkbox-group"><label><input type="checkbox" name="fieldPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="fieldPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="fieldPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="fieldPM" value="李思开"> 李思开</label><label><input type="checkbox" name="fieldPM" value="孙佳俊"> 孙佳俊</label></div></div>
-                    <div class="form-group"><label>是否需要审查</label><select id="fieldNeedReview" onchange="handleNeedReviewChange()"><option value="否">否</option><option value="是">是</option></select></div>
-                    <div class="form-group"><label>文档地址</label><input type="text" id="fieldDocUrl" placeholder="可输入文本或链接"></div>
-                    <div class="form-group full-width"><label>备注</label><textarea id="fieldRemark" rows="2" maxlength="200" placeholder="限制200字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="remarkCharCount">0</span>/200</div></div>
+                <!-- P0-2: 基础信息 - 默认展开 -->
+                <div class="form-section-group">
+                    <div class="form-section-header" onclick="toggleFormSection('basicInfo')">
+                        <h4>📋 基础信息（必填）</h4>
+                        <span class="toggle-icon" id="basicInfoToggle">▼</span>
+                    </div>
+                    <div class="form-section-body" id="basicInfoBody">
+                        <div class="form-grid">
+                            <div class="form-group"><label>类型 <span style="color:var(--danger)">*</span></label><select id="fieldType" required><option value="">请选择</option><option value="平台">平台</option><option value="业务">业务</option></select></div>
+                            <div class="form-group"><label>端 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msPlatform"></div></div>
+                            <div class="form-group"><label>角色 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msRole"></div></div>
+                            <div class="form-group"><label>关联模块 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msModule"></div></div>
+                            <div class="form-group"><label>已应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msAppliedCountry"></div></div>
+                            <div class="form-group"><label>需要应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msNeedCountry"></div></div>
+                            <div class="form-group full-width"><label>需求标题 <span style="color:var(--danger)">*</span></label><input type="text" id="fieldTitle" maxlength="30" placeholder="限制30字" required><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="titleCharCount">0</span>/30</div></div>
+                            <div class="form-group full-width"><label>需求内容 <span style="color:var(--danger)">*</span></label><textarea id="fieldContent" rows="3" placeholder="可输入文本、链接或图片地址" required></textarea></div>
+                            <div class="form-group"><label>当前状态 <span style="color:var(--danger)">*</span></label><select id="fieldStatus" required><option value="">请选择</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select></div>
+                            <div class="form-group"><label>优先级 <span style="color:var(--danger)">*</span></label><select id="fieldPriority" required><option value="">请选择</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></div>
+                            <div class="form-group full-width"><label>产品PM <span style="color:var(--danger)">*</span></label><div class="checkbox-group"><label><input type="checkbox" name="fieldPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="fieldPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="fieldPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="fieldPM" value="李思开"> 李思开</label><label><input type="checkbox" name="fieldPM" value="孙佳俊"> 孙佳俊</label></div></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- P0-2: 扩展信息 - 默认折叠 -->
+                <div class="form-section-group">
+                    <div class="form-section-header" onclick="toggleFormSection('extraInfo')">
+                        <h4>📎 扩展信息（选填）</h4>
+                        <span class="toggle-icon collapsed" id="extraInfoToggle">▼</span>
+                    </div>
+                    <div class="form-section-body collapsed" id="extraInfoBody">
+                        <div class="form-grid">
+                            <div class="form-group full-width"><label>需求价值</label><textarea id="fieldValue" rows="2" maxlength="100" placeholder="描述该需求的业务价值，限制100字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="valueCharCount">0</span>/100</div></div>
+                            <div class="form-group"><label>需求提出人</label><input type="text" id="fieldProposerName" placeholder="提出人姓名"></div>
+                            <div class="form-group"><label>需求提出国家</label><div class="multi-select" id="msProposerCountry"></div></div>
+                            <div class="form-group"><label>业务预期时间</label><input type="date" id="fieldExpectDate"></div>
+                            <div class="form-group"><label>上线时间</label><input type="date" id="fieldLaunchDate"></div>
+                            <div class="form-group"><label>文档地址</label><input type="text" id="fieldDocUrl" placeholder="可输入文本或链接"></div>
+                            <div class="form-group"><label>能力形式</label><select id="fieldCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
+                            <div class="form-group"><label>是否需要审查</label><select id="fieldNeedReview" onchange="handleNeedReviewChange()"><option value="否">否</option><option value="是">是</option></select></div>
+                            <div class="form-group"><label>登记信息</label><input type="text" id="fieldRegInfo" readonly style="background:var(--gray-50)"></div>
+                            <div class="form-group full-width"><label>备注</label><textarea id="fieldRemark" rows="2" maxlength="200" placeholder="限制200字"></textarea><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="remarkCharCount">0</span>/200</div></div>
+                        </div>
+                    </div>
                 </div>
                 <div id="reviewSectionInForm" class="review-section" style="display:none;">
                     <h4>审查建议</h4>
@@ -663,20 +741,37 @@
 
 <script>
 // ==================== CONSTANTS ====================
+// P0-8: Users config with SHA-256 hashed passwords
+// Hash of '123456' = 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
+const _PASSWORD_HASH = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
 const USERS = {
-    'zhuli': { name: '朱黎', role: '组长', password: '123456' },
-    'zhangdongliang': { name: '张栋良', role: '组员', password: '123456' },
-    'pengchengshuo': { name: '彭程硕', role: '组员', password: '123456' },
-    'lisikai': { name: '李思开', role: '组员', password: '123456' },
-    'sunjiajun': { name: '孙佳俊', role: '组员', password: '123456' },
-    'lvshaojun': { name: '吕少俊', role: '组长', password: '123456' }
+    'zhuli': { name: '朱黎', role: '组长', passwordHash: _PASSWORD_HASH },
+    'zhangdongliang': { name: '张栋良', role: '组员', passwordHash: _PASSWORD_HASH },
+    'pengchengshuo': { name: '彭程硕', role: '组员', passwordHash: _PASSWORD_HASH },
+    'lisikai': { name: '李思开', role: '组员', passwordHash: _PASSWORD_HASH },
+    'sunjiajun': { name: '孙佳俊', role: '组员', passwordHash: _PASSWORD_HASH },
+    'lvshaojun': { name: '吕少俊', role: '组长', passwordHash: _PASSWORD_HASH }
 };
+
+// P0-8: SHA-256 hashing utility
+async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 const COUNTRY_REGION = { '全部': '全部', '巴基斯坦': '南亚', '孟加拉': '南亚', '乌干达': '东非', '坦桑尼亚': '东非', '尼日利亚': '西非', '布基纳法索': '西非', '菲律宾': '东南亚' };
 const STORAGE_KEY_DEMANDS = 'demand_mgmt_demands';
 const STORAGE_KEY_REVIEWS = 'demand_mgmt_reviews';
 const STORAGE_KEY_SESSION = 'demand_mgmt_session';
 let currentUser = null;
 let editingDemandId = null;
+
+// Pagination state
+let currentDemandPage = 1;
+let demandPageSize = 20;
+let totalDemandPages = 1;
+let allFilteredDemands = []; // cached filtered results for pagination
 
 // ==================== MULTI-SELECT ====================
 const MULTI_SELECT_OPTIONS = {
@@ -750,13 +845,18 @@ function saveSession(user) {
 function clearSession() { localStorage.removeItem(STORAGE_KEY_SESSION); }
 
 // ==================== LOGIN ====================
-function handleLogin(e) {
+async function handleLogin(e) {
     e.preventDefault();
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const user = USERS[username];
-    if (!user || user.password !== password) { showToast('用户名或密码错误', 'error'); return false; }
-    currentUser = { username, ...user };
+    if (!user) { showToast('用户名或密码错误', 'error'); return false; }
+
+    // P0-8: Compare SHA-256 hash instead of plain text
+    const inputHash = await sha256(password);
+    if (inputHash !== user.passwordHash) { showToast('用户名或密码错误', 'error'); return false; }
+
+    currentUser = { username, name: user.name, role: user.role };
     saveSession(currentUser);
     showToast(`欢迎回来，${currentUser.name}！`, 'success');
     showApp();
@@ -773,6 +873,7 @@ function showApp() {
     document.getElementById('appLayout').classList.add('active');
     document.getElementById('sidebarUserInfo').textContent = `${currentUser.name} · ${currentUser.role}`;
     renderDemandTable();
+    updateBlockReminder();
 }
 
 // ==================== NAVIGATION ====================
@@ -804,41 +905,101 @@ async function initCloudBase() {
             await auth.anonymousSignIn();
             cloudbaseDb = cloudbaseApp.database();
             console.log('CloudBase 已连接并登录');
+            updateConnectionStatus(true);
             return true;
         } catch (e) { console.error('CloudBase 初始化失败:', e); }
     }
     console.log('使用本地存储模式');
+    updateConnectionStatus(false);
     return false;
 }
+
+// ==================== CONNECTION STATUS (P0-3) ====================
+function updateConnectionStatus(isOnline) {
+    const el = document.getElementById('connectionStatus');
+    if (!el) return;
+    if (isOnline) {
+        el.className = 'connection-status online';
+        el.innerHTML = '<span class="dot"></span> 已连接';
+    } else {
+        el.className = 'connection-status offline';
+        el.innerHTML = '<span class="dot"></span> 离线模式';
+    }
+}
+
+// Monitor online/offline events
+window.addEventListener('online', () => {
+    updateConnectionStatus(!!cloudbaseDb);
+    showToast('网络已恢复', 'success');
+});
+window.addEventListener('offline', () => {
+    updateConnectionStatus(false);
+    showToast('网络已断开，将使用本地存储', 'error');
+});
 
 // ==================== DATA OPS ====================
 async function getDemands() {
     if (cloudbaseDb) {
         try {
             const res = await cloudbaseDb.collection('demands').orderBy('createdAt', 'desc').get();
+            updateConnectionStatus(true);
             return res.data || [];
-        } catch (e) { console.error('获取需求失败:', e); return []; }
+        } catch (e) {
+            console.error('获取需求失败:', e);
+            updateConnectionStatus(false);
+            showToast('获取需求数据失败，已降级为本地数据', 'error', () => renderDemandTable());
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_DEMANDS) || '[]');
+        }
     }
     return JSON.parse(localStorage.getItem(STORAGE_KEY_DEMANDS) || '[]');
 }
 
+// P0-5: Operation lock to prevent concurrent saves
+let _demandSaveLock = false;
+
 async function saveDemands(demands) {
+    // Always save to localStorage as offline fallback
+    localStorage.setItem(STORAGE_KEY_DEMANDS, JSON.stringify(demands));
     if (cloudbaseDb) {
+        // P0-5: Prevent concurrent saves with operation lock
+        if (_demandSaveLock) {
+            console.warn('保存操作正在进行中，跳过重复请求');
+            return;
+        }
+        _demandSaveLock = true;
         try {
-            // 先清空集合，然后批量插入
             const collection = cloudbaseDb.collection('demands');
-            // 删除所有现有记录
             const existing = await collection.get();
+            const existingMap = {};
+            (existing.data || []).forEach(item => { existingMap[item.id] = item._id; });
+
+            const demandIds = new Set(demands.map(d => d.id));
+
+            // Delete removed records
             for (const item of existing.data || []) {
-                await collection.doc(item._id).remove();
+                if (!demandIds.has(item.id)) {
+                    await collection.doc(item._id).remove();
+                }
             }
-            // 插入新记录
+
+            // Update existing or add new records
             for (const demand of demands) {
-                await collection.add({ data: { ...demand } });
+                if (existingMap[demand.id]) {
+                    // Update existing record
+                    await collection.doc(existingMap[demand.id]).update({ data: { ...demand } });
+                } else {
+                    // Add new record
+                    await collection.add({ data: { ...demand } });
+                }
             }
-        } catch (e) { console.error('保存需求失败:', e); }
-    } else {
-        localStorage.setItem(STORAGE_KEY_DEMANDS, JSON.stringify(demands));
+            updateConnectionStatus(true);
+        } catch (e) {
+            console.error('保存需求失败:', e);
+            updateConnectionStatus(false);
+            showToast('需求数据已保存到本地，云端同步失败', 'error');
+        } finally {
+            _demandSaveLock = false;
+        }
     }
 }
 
@@ -847,7 +1008,10 @@ async function getReviews() {
         try {
             const res = await cloudbaseDb.collection('reviews').orderBy('date', 'desc').get();
             return res.data || [];
-        } catch (e) { console.error('获取审查建议失败:', e); return []; }
+        } catch (e) {
+            console.error('获取审查建议失败:', e);
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_REVIEWS) || '[]');
+        }
     }
     return JSON.parse(localStorage.getItem(STORAGE_KEY_REVIEWS) || '[]');
 }
@@ -893,6 +1057,9 @@ async function openCreateModal(id = null) {
     initMultiSelect('msNeedCountry', MULTI_SELECT_OPTIONS.country);
     initMultiSelect('msProposerCountry', MULTI_SELECT_OPTIONS.proposerCountry);
 
+    // P0-6: Update status selector based on flow rules
+    updateStatusSelector(null, false);
+
     if (id) {
         const demands = await getDemands();
         const d = demands.find(x => x.id === id);
@@ -911,6 +1078,8 @@ async function openCreateModal(id = null) {
             document.getElementById('fieldRegInfo').value = d.登记信息 || '';
             document.getElementById('fieldExpectDate').value = d.expectDate;
             document.getElementById('fieldLaunchDate').value = d.launchDate;
+            // P0-6: Update status selector with flow rules
+            updateStatusSelector(d.status, true);
             document.getElementById('fieldStatus').value = d.status;
             document.getElementById('fieldPriority').value = d.priority;
             document.getElementById('fieldDocUrl').value = d.docUrl;
@@ -998,8 +1167,19 @@ async function handleDemandSubmit(e) {
         }
     }
 
-    if (isEdit) { const idx = demands.findIndex(d => d.id === id); if (idx !== -1) demands[idx] = demand; showToast('需求更新成功', 'success'); }
-    else { demands.unshift(demand); showToast('需求创建成功', 'success'); }
+    if (isEdit) {
+        const existingDemand = demands.find(d => d.id === id);
+        // P0-6: Log status change
+        if (existingDemand && existingDemand.status !== demand.status) {
+            logStatusChange(id, existingDemand.status, demand.status, currentUser.name);
+        }
+        const idx = demands.findIndex(d => d.id === id);
+        if (idx !== -1) demands[idx] = demand;
+        showToast('需求更新成功', 'success');
+    } else {
+        demands.unshift(demand);
+        showToast('需求创建成功', 'success');
+    }
     await saveDemands(demands);
     closeCreateModal();
     await renderDemandTable();
@@ -1009,12 +1189,29 @@ async function handleDemandSubmit(e) {
 async function editDemand(id) { await openCreateModal(id); }
 
 async function deleteDemand(id) {
-    if (!confirm('确定要删除这条需求吗？此操作不可恢复。')) return;
     let demands = await getDemands();
     const demand = demands.find(d => d.id === id);
     if (demand && demand.status !== '待确认') { showToast('只有"待确认"状态的需求才能删除', 'error'); return; }
+    // P0-9: Enhanced delete confirmation with demand title
+    const title = demand ? demand.title : id;
+    if (!confirm(`确定删除需求「${title}」吗？\n\n⚠️ 此操作不可恢复！`)) return;
+
+    // P0-5: Single-record deletion from CloudBase
+    if (cloudbaseDb) {
+        try {
+            const existing = await cloudbaseDb.collection('demands').where({ id }).get();
+            for (const item of existing.data || []) {
+                await cloudbaseDb.collection('demands').doc(item._id).remove();
+            }
+        } catch (e) {
+            console.error('云端删除需求失败:', e);
+        }
+    }
+    // Also update localStorage
     demands = demands.filter(d => d.id !== id);
-    await saveDemands(demands);
+    localStorage.setItem(STORAGE_KEY_DEMANDS, JSON.stringify(demands));
+
+    // Delete related reviews
     let allReviews = await getReviews();
     let reviews = allReviews.filter(r => r.demandId !== id);
     await saveReviews(reviews);
@@ -1093,14 +1290,34 @@ async function handleReviewSubmit(e) {
 }
 
 // ==================== TABLE ====================
-async function renderDemandTable(filteredDemands) {
-    const demands = filteredDemands || await getDemands();
+async function renderDemandTable(filteredDemands, page) {
+    // P0-1: 支持分页的渲染函数
+    const demands = filteredDemands !== undefined ? filteredDemands : await getDemands();
+    allFilteredDemands = demands;
+    if (page !== undefined) currentDemandPage = page;
+
     const tbody = document.getElementById('demandTableBody');
     const empty = document.getElementById('emptyState');
-    if (demands.length === 0) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+    const paginationBar = document.getElementById('paginationBar');
+
+    if (demands.length === 0) {
+        tbody.innerHTML = '';
+        empty.style.display = '';
+        paginationBar.style.display = 'none';
+        return;
+    }
     empty.style.display = 'none';
+
+    // Calculate pagination
+    totalDemandPages = Math.max(1, Math.ceil(demands.length / demandPageSize));
+    if (currentDemandPage > totalDemandPages) currentDemandPage = totalDemandPages;
+    if (currentDemandPage < 1) currentDemandPage = 1;
+    const startIdx = (currentDemandPage - 1) * demandPageSize;
+    const endIdx = startIdx + demandPageSize;
+    const pageDemands = demands.slice(startIdx, endIdx);
+
     const allReviews = await getReviews();
-    tbody.innerHTML = demands.map(d => {
+    tbody.innerHTML = pageDemands.map(d => {
         const contentPreview = d.content && d.content.length > 20 ? d.content.substring(0, 20) + '...' : (d.content || '-');
         const reviews = allReviews.filter(r => r.demandId === d.id);
         const reviewerInfo = reviews.length > 0 ? `${reviews[reviews.length-1].author} ${reviews[reviews.length-1].date.split(' ')[0]}` : '-';
@@ -1127,6 +1344,162 @@ async function renderDemandTable(filteredDemands) {
             </div></td>
         </tr>`;
     }).join('');
+
+    // Update pagination bar
+    updatePaginationBar(demands.length);
+}
+
+// ==================== PAGINATION ====================
+function updatePaginationBar(totalCount) {
+    const paginationBar = document.getElementById('paginationBar');
+    if (totalCount <= demandPageSize) {
+        paginationBar.style.display = totalCount > 0 ? 'flex' : 'none';
+        if (totalCount > 0) {
+            document.getElementById('paginationTotal').textContent = totalCount;
+            document.getElementById('paginationCurrent').textContent = '1';
+            document.getElementById('paginationPages').textContent = '1';
+            document.getElementById('paginationNumbers').innerHTML = '';
+        }
+        return;
+    }
+    paginationBar.style.display = 'flex';
+    document.getElementById('paginationTotal').textContent = totalCount;
+    document.getElementById('paginationCurrent').textContent = currentDemandPage;
+    document.getElementById('paginationPages').textContent = totalDemandPages;
+
+    // Button states
+    document.getElementById('btnFirst').disabled = currentDemandPage <= 1;
+    document.getElementById('btnPrev').disabled = currentDemandPage <= 1;
+    document.getElementById('btnNext').disabled = currentDemandPage >= totalDemandPages;
+    document.getElementById('btnLast').disabled = currentDemandPage >= totalDemandPages;
+
+    // Page number buttons (show max 7 pages)
+    let startPage = Math.max(1, currentDemandPage - 3);
+    let endPage = Math.min(totalDemandPages, startPage + 6);
+    if (endPage - startPage < 6) startPage = Math.max(1, endPage - 6);
+
+    let html = '';
+    for (let i = startPage; i <= endPage; i++) {
+        html += `<button onclick="goToPage(${i})" class="${i === currentDemandPage ? 'active' : ''}">${i}</button>`;
+    }
+    document.getElementById('paginationNumbers').innerHTML = html;
+}
+
+function goToPage(page) {
+    if (page < 1 || page > totalDemandPages) return;
+    currentDemandPage = page;
+    renderDemandTable(allFilteredDemands, page);
+}
+
+function changePageSize(size) {
+    demandPageSize = parseInt(size);
+    currentDemandPage = 1;
+    renderDemandTable(allFilteredDemands, 1);
+}
+
+// ==================== FORM SECTION TOGGLE (P0-2) ====================
+function toggleFormSection(sectionId) {
+    const body = document.getElementById(sectionId + 'Body');
+    const toggle = document.getElementById(sectionId + 'Toggle');
+    if (!body || !toggle) return;
+    body.classList.toggle('collapsed');
+    toggle.classList.toggle('collapsed');
+}
+
+// ==================== STATUS FLOW CONTROL (P0-6) ====================
+const STATUS_TRANSITIONS = {
+    '待确认': ['待评审', '已关闭', '挂起'],
+    '待评审': ['开发中', '已关闭', '挂起'],
+    '开发中': ['测试中', '挂起'],
+    '测试中': ['已发布', '挂起'],
+    '已发布': ['挂起'],
+    '已关闭': ['挂起'],
+    '挂起': [] // Special: restore to previous status
+};
+const STORAGE_KEY_STATUS_LOG = 'demand_mgmt_status_log';
+
+function getValidStatusTransitions(currentStatus) {
+    if (!currentStatus) return ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
+    return STATUS_TRANSITIONS[currentStatus] || [];
+}
+
+function updateStatusSelector(currentStatus, isEdit) {
+    const select = document.getElementById('fieldStatus');
+    if (!select) return;
+    const allStatuses = ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
+
+    if (isEdit && currentStatus) {
+        const validTransitions = getValidStatusTransitions(currentStatus);
+        // Include current status + valid transitions
+        const allowed = [currentStatus, ...validTransitions];
+        select.innerHTML = allowed.map(s =>
+            `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}${s === currentStatus ? ' (当前)' : ''}</option>`
+        ).join('');
+    } else {
+        // New demand - default to 待确认
+        select.innerHTML = '<option value="待确认" selected>待确认</option>' +
+            allStatuses.filter(s => s !== '待确认').map(s => `<option value="${s}">${s}</option>`).join('');
+    }
+}
+
+function logStatusChange(demandId, fromStatus, toStatus, operator) {
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY_STATUS_LOG) || '[]');
+    logs.unshift({
+        id: 'SL' + Date.now().toString(36).toUpperCase(),
+        demandId, fromStatus, toStatus, operator,
+        timestamp: formatDate(new Date())
+    });
+    // Keep last 500 logs
+    if (logs.length > 500) logs.length = 500;
+    localStorage.setItem(STORAGE_KEY_STATUS_LOG, JSON.stringify(logs));
+}
+
+// ==================== BLOCK REMINDER (P0-7) ====================
+async function updateBlockReminder() {
+    const schedules = await getSchedules();
+    const now = new Date();
+    let warningCount = 0;
+    let severeCount = 0;
+
+    schedules.forEach(s => {
+        if (s.isBlocked === '是' && s.blockedAt) {
+            const blockedDate = new Date(s.blockedAt);
+            const daysDiff = Math.floor((now - blockedDate) / (1000 * 60 * 60 * 24));
+            if (daysDiff >= 7) severeCount++;
+            else if (daysDiff >= 3) warningCount++;
+        }
+    });
+
+    const totalCount = severeCount + warningCount;
+    const badge = document.getElementById('blockReminderBadge');
+    const navItem = document.getElementById('navBlockReminder');
+
+    if (totalCount > 0) {
+        badge.style.display = '';
+        badge.textContent = totalCount;
+        if (severeCount > 0) {
+            badge.className = 'badge badge-p0';
+            navItem.style.background = 'rgba(220,38,38,0.15)';
+        } else {
+            badge.className = 'badge badge-p1';
+            navItem.style.background = 'rgba(217,119,6,0.15)';
+        }
+    } else {
+        badge.style.display = 'none';
+        navItem.style.background = '';
+    }
+
+    // P0-7: Show login popup for severe blocks (>7 days)
+    if (severeCount > 0) {
+        const lastShown = localStorage.getItem('block_reminder_last_shown');
+        const today = new Date().toDateString();
+        if (lastShown !== today) {
+            localStorage.setItem('block_reminder_last_shown', today);
+            setTimeout(() => {
+                showToast(`⚠️ 有 ${severeCount} 个卡点已超过 7 天，请及时处理！`, 'error');
+            }, 1500);
+        }
+    }
 }
 
 // ==================== FILTERS ====================
@@ -1217,14 +1590,64 @@ function renderChartBar(data, colors) {
     `).join('');
 }
 
-// ==================== SCHEDULE ====================
+// ==================== SCHEDULE (P0-4: Cloud sync) ====================
 const STORAGE_KEY_SCHEDULE = 'demand_mgmt_schedule';
 let scheduleView = 'week';
+let _scheduleMigrated = false;
 
-function getSchedules() { return JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE) || '[]'); }
-function saveSchedules(s) { localStorage.setItem(STORAGE_KEY_SCHEDULE, JSON.stringify(s)); }
+async function getSchedules() {
+    if (cloudbaseDb) {
+        try {
+            const res = await cloudbaseDb.collection('schedules').orderBy('createdAt', 'desc').get();
+            const cloudData = res.data || [];
+            // P0-4: 首次云端同步 - 迁移 localStorage 数据到 CloudBase
+            if (!_scheduleMigrated && cloudData.length === 0) {
+                const localData = JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE) || '[]');
+                if (localData.length > 0) {
+                    for (const item of localData) {
+                        await cloudbaseDb.collection('schedules').add({ data: { ...item } });
+                    }
+                    console.log(`已迁移 ${localData.length} 条排期数据到云端`);
+                    const migrated = await cloudbaseDb.collection('schedules').orderBy('createdAt', 'desc').get();
+                    _scheduleMigrated = true;
+                    return migrated.data || [];
+                }
+                _scheduleMigrated = true;
+            }
+            updateConnectionStatus(true);
+            return cloudData;
+        } catch (e) {
+            console.error('获取排期数据失败:', e);
+            updateConnectionStatus(false);
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE) || '[]');
+        }
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_SCHEDULE) || '[]');
+}
 
-function openScheduleModal(id = null) {
+async function saveSchedules(schedules) {
+    // Always save to localStorage as offline fallback
+    localStorage.setItem(STORAGE_KEY_SCHEDULE, JSON.stringify(schedules));
+    if (cloudbaseDb) {
+        try {
+            const collection = cloudbaseDb.collection('schedules');
+            const existing = await collection.get();
+            for (const item of existing.data || []) {
+                await collection.doc(item._id).remove();
+            }
+            for (const s of schedules) {
+                await collection.add({ data: { ...s } });
+            }
+            updateConnectionStatus(true);
+        } catch (e) {
+            console.error('保存排期数据到云端失败:', e);
+            updateConnectionStatus(false);
+            showToast('排期数据已保存到本地，云端同步失败', 'error');
+        }
+    }
+}
+
+async function openScheduleModal(id = null) {
     const demands = [];
     document.getElementById('scheduleModal') || createScheduleModal();
     const modal = document.getElementById('scheduleModal');
@@ -1248,7 +1671,7 @@ function openScheduleModal(id = null) {
 
     if (id) {
         titleEl.textContent = '编辑排期';
-        const schedules = getSchedules();
+        const schedules = await getSchedules();
         const s = schedules.find(x => x.id === id);
         if (s) {
             document.getElementById('editScheduleId').value = s.id;
@@ -1316,7 +1739,7 @@ async function handleScheduleSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('editScheduleId').value || 'SCH' + Date.now().toString(36).toUpperCase();
     const isEdit = !!document.getElementById('editScheduleId').value;
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const existingSchedule = isEdit ? schedules.find(s => s.id === id) : null;
 
     const schedule = {
@@ -1345,24 +1768,27 @@ async function handleScheduleSubmit(e) {
     } else {
         schedules.unshift(schedule);
     }
-    saveSchedules(schedules);
+    await saveSchedules(schedules);
     closeScheduleModal();
     showToast(isEdit ? '排期更新成功' : '排期创建成功', 'success');
     await renderScheduleTable();
     return false;
 }
 
-function deleteSchedule(id) {
-    if (!confirm('确定要删除这条排期吗？')) return;
-    let schedules = getSchedules();
+async function deleteSchedule(id) {
+    let schedules = await getSchedules();
+    const schedule = schedules.find(s => s.id === id);
+    // P0-9: Enhanced delete confirmation with related demand info
+    const demandInfo = schedule ? (schedule.demandId || '未关联') : id;
+    if (!confirm(`确定删除排期吗？\n关联需求：${demandInfo}\n责任人：${schedule?.owner || '-'}\n\n⚠️ 此操作不可恢复！`)) return;
     schedules = schedules.filter(s => s.id !== id);
-    saveSchedules(schedules);
+    await saveSchedules(schedules);
     showToast('排期已删除', 'success');
-    renderScheduleTable();
+    await renderScheduleTable();
 }
 
 async function renderScheduleTable(filteredSchedules) {
-    const schedules = filteredSchedules || getSchedules();
+    const schedules = filteredSchedules || await getSchedules();
     const tbody = document.getElementById('scheduleTableBody');
     const empty = document.getElementById('scheduleEmptyState');
 
@@ -1405,7 +1831,7 @@ async function renderScheduleTable(filteredSchedules) {
 }
 
 async function applyScheduleFilter() {
-    let schedules = getSchedules();
+    let schedules = await getSchedules();
     const f = id => document.getElementById(id).value;
     if (f('scheduleFilterOwner')) schedules = schedules.filter(s => s.owner === f('scheduleFilterOwner'));
     if (f('scheduleFilterRole')) schedules = schedules.filter(s => s.role === f('scheduleFilterRole'));
@@ -1425,7 +1851,7 @@ function setScheduleView(view) {
 }
 
 async function renderGanttChart() {
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const demands = await getDemands();
     const demandMap = {};
     demands.forEach(d => { demandMap[d.id] = d.title; });
@@ -1508,7 +1934,16 @@ function formatDateFile(d) { return `${d.getFullYear()}${String(d.getMonth()+1).
 function getStatusBadgeClass(s) { return {'待确认':'badge-pending','待评审':'badge-review','开发中':'badge-dev','测试中':'badge-test','已发布':'badge-released','已关闭':'badge-closed','挂起':'badge-suspended'}[s]||''; }
 function getPriorityBadgeClass(p) { return {'P0':'badge-p0','P1':'badge-p1','P2':'badge-p2'}[p]||''; }
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-function showToast(msg, type) { const t = document.getElementById('toast'); t.textContent = msg; t.className = `toast ${type} show`; setTimeout(() => t.classList.remove('show'), 3000); }
+function showToast(msg, type, retryFn) {
+    const t = document.getElementById('toast');
+    if (retryFn) {
+        t.innerHTML = `<span class="toast-with-retry"><span>${escapeHtml(msg)}</span><button class="toast-retry-btn" onclick="(${retryFn.toString()})()">重试</button></span>`;
+    } else {
+        t.textContent = msg;
+    }
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), retryFn ? 8000 : 3000);
+}
 function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
 function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
 
@@ -1568,7 +2003,7 @@ function toggleBlockFields() {
 
 // ==================== PERSON DASHBOARD ====================
 async function renderPersonDashboard() {
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const demands = await getDemands();
     const demandMap = {};
     demands.forEach(d => { demandMap[d.id] = d.title; });
@@ -1645,7 +2080,7 @@ document.getElementById('personFilterRole')?.addEventListener('change', renderPe
 
 // ==================== MY TASKS ====================
 async function renderMyTasks() {
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const demands = await getDemands();
     const demandMap = {};
     demands.forEach(d => { demandMap[d.id] = d.title; });
@@ -1717,8 +2152,8 @@ async function renderMyTasks() {
     container.innerHTML = html;
 }
 
-function exportMyTasksMarkdown() {
-    const schedules = getSchedules().filter(s => s.owner === currentUser.name);
+async function exportMyTasksMarkdown() {
+    const schedules = (await getSchedules()).filter(s => s.owner === currentUser.name);
     const now = new Date();
     const weekStart = new Date(now);
     weekStart.setDate(now.getDate() - now.getDay() + 1);
@@ -1785,7 +2220,7 @@ function initReportPage() {
 }
 
 async function generateWeeklyReport() {
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const demands = await getDemands();
     const demandMap = {};
     demands.forEach(d => { demandMap[d.id] = d; });
@@ -1867,7 +2302,7 @@ async function generateWeeklyReport() {
 
 async function generateMonthlyReport() {
     const demands = await getDemands();
-    const schedules = getSchedules();
+    const schedules = await getSchedules();
     const month = document.getElementById('monthlyReportMonth')?.value;
     if (!month) { showToast('请选择月份', 'error'); return; }
 
