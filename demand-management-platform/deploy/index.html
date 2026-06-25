@@ -795,6 +795,22 @@
                             <button class="btn btn-primary" onclick="generateMonthlyReport()" style="width:100%;">生成月度报告</button>
                         </div>
                     </div>
+                    <!-- P1-11: 自定义报告 -->
+                    <div class="card" style="grid-column:1/-1;">
+                        <div class="card-header"><h3>📝 自定义报告</h3></div>
+                        <div class="card-body">
+                            <p style="font-size:13px;color:var(--gray-600);margin-bottom:16px;">根据自定义维度生成报告，支持筛选时间范围、PM、国家、状态和优先级。</p>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+                                <div class="form-group"><label>开始月份</label><input type="month" id="customReportStart"></div>
+                                <div class="form-group"><label>结束月份</label><input type="month" id="customReportEnd"></div>
+                                <div class="form-group"><label>产品经理</label><select id="customReportPm"><option value="">全部</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option></select></div>
+                                <div class="form-group"><label>国家</label><select id="customReportCountry"><option value="">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
+                                <div class="form-group"><label>状态</label><select id="customReportStatus"><option value="">全部</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="挂起">挂起</option></select></div>
+                                <div class="form-group"><label>优先级</label><select id="customReportPriority"><option value="">全部</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></div>
+                            </div>
+                            <button class="btn btn-primary" onclick="generateCustomReport()" style="width:100%;">生成自定义报告</button>
+                        </div>
+                    </div>
                 </div>
                 <div id="reportPreview" style="margin-top:20px;"></div>
             </div>
@@ -891,7 +907,7 @@
     </div>
 </div>
 
-<!-- REVIEW MODAL -->
+<!-- REVIEW MODAL (P1-12: 评审流程标准化) -->
 <div id="reviewModal" class="modal-overlay" onclick="if(event.target===this)closeReviewModal()">
     <div class="modal" style="width:600px;">
         <div class="modal-header"><h2>审查建议</h2><button class="modal-close" onclick="closeReviewModal()">&times;</button></div>
@@ -899,6 +915,20 @@
             <form id="reviewForm" onsubmit="return handleReviewSubmit(event)">
                 <input type="hidden" id="reviewDemandId">
                 <div class="form-grid">
+                    <!-- P1-12: 评审结果 -->
+                    <div class="form-group full-width"><label>评审结果 <span style="color:var(--danger)">*</span></label>
+                        <select id="reviewResult" required onchange="handleReviewResultChange()">
+                            <option value="">请选择</option>
+                            <option value="通过">✅ 通过</option>
+                            <option value="有条件通过">⚠️ 有条件通过</option>
+                            <option value="打回">❌ 打回</option>
+                        </select>
+                    </div>
+                    <!-- P1-12: 打回原因（仅打回时显示） -->
+                    <div class="form-group full-width" id="rejectReasonGroup" style="display:none;">
+                        <label>打回原因 <span style="color:var(--danger)">*</span></label>
+                        <textarea id="rejectReason" rows="2" maxlength="200" placeholder="请填写打回原因"></textarea>
+                    </div>
                     <div class="form-group"><label>能力形式（复核）</label><select id="reviewCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
                     <div class="form-group"><label>关联模块（复核）</label><select id="reviewModule"><option value="">请选择</option><option value="全部">全部</option><option value="金融模式">金融模式</option><option value="进件">进件</option><option value="佣金">佣金</option><option value="商品">商品</option><option value="结算">结算</option><option value="风控">风控</option><option value="订单">订单</option><option value="考培">考培</option><option value="数据看板">数据看板</option><option value="基础模块">基础模块</option><option value="广告">广告</option><option value="消息">消息</option><option value="催收">催收</option><option value="其他">其他</option></select></div>
                     <div class="form-group"><label>需要应用国家（复核）</label><select id="reviewNeedCountry"><option value="">请选择</option><option value="无">无</option><option value="全部">全部</option><option value="巴基斯坦">巴基斯坦</option><option value="孟加拉">孟加拉</option><option value="乌干达">乌干达</option><option value="尼日利亚">尼日利亚</option><option value="坦桑尼亚">坦桑尼亚</option><option value="菲律宾">菲律宾</option><option value="布基纳法索">布基纳法索</option></select></div>
@@ -966,7 +996,33 @@
 </div>
 
 <script>
-// ==================== CONSTANTS ====================
+// =====================================================================
+// P1-7: CODE MODULE INDEX - 代码模块导航
+// =====================================================================
+// 1. CONSTANTS        - 常量定义（用户、存储Key、下拉选项等）
+// 2. UTILITY FUNCTIONS - 工具函数（日期格式化、HTML转义等）
+// 3. MULTI-SELECT     - 多选组件
+// 4. SESSION & LOGIN  - 会话与登录
+// 5. CLOUDBASE CLIENT - 云开发客户端
+// 6. DATA OPS         - 数据操作（需求、审查、评论等）
+// 7. FILTER ENGINE    - 统一筛选引擎
+// 8. DEMAND TABLE     - 需求列表与分页
+// 9. DEMAND FORM      - 需求表单（新建/编辑/草稿）
+// 10. DETAIL & REVIEW - 详情查看与审查
+// 11. BATCH OPS       - 批量操作
+// 12. SEARCH          - 全局搜索
+// 13. TIMELINE        - 操作时间线
+// 14. STATUS FLOW     - 状态流转管控
+// 15. SCHEDULE        - 排期管理
+// 16. PERSON DASHBOARD- 人员看板
+// 17. MY TASKS        - 我的任务
+// 18. REPORTS         - 报告生成
+// 19. STATS & CHARTS  - 统计与图表
+// 20. MOBILE          - 移动端适配
+// 21. INIT & EVENTS   - 初始化与事件监听
+// =====================================================================
+
+// ==================== 1. CONSTANTS ====================
 // P0-8: Users config with SHA-256 hashed passwords
 // Hash of '123456' = 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 const _PASSWORD_HASH = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
@@ -986,10 +1042,20 @@ async function sha256(message) {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// P1-7: 统一常量 - 国家/PM/状态等下拉选项
+const COUNTRY_OPTIONS = ['无', '全部', '巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索'];
+const PM_OPTIONS = ['朱黎', '张栋良', '彭程硕', '李思开', '孙佳俊'];
+const STATUS_OPTIONS = ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
+const PROPOSER_COUNTRY_OPTIONS = ['巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索'];
 const COUNTRY_REGION = { '全部': '全部', '巴基斯坦': '南亚', '孟加拉': '南亚', '乌干达': '东非', '坦桑尼亚': '东非', '尼日利亚': '西非', '布基纳法索': '西非', '菲律宾': '东南亚' };
+
 const STORAGE_KEY_DEMANDS = 'demand_mgmt_demands';
 const STORAGE_KEY_REVIEWS = 'demand_mgmt_reviews';
 const STORAGE_KEY_SESSION = 'demand_mgmt_session';
+const STORAGE_KEY_STATUS_LOG = 'demand_mgmt_status_log';
+const STORAGE_KEY_SCHEDULE = 'demand_mgmt_schedule';
+const STORAGE_KEY_COMMENTS = 'demand_mgmt_comments';
 let currentUser = null;
 let editingDemandId = null;
 
@@ -999,13 +1065,21 @@ let demandPageSize = 20;
 let totalDemandPages = 1;
 let allFilteredDemands = []; // cached filtered results for pagination
 
-// ==================== MULTI-SELECT ====================
+// ==================== 2. UTILITY FUNCTIONS ====================
+function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; }
+function formatDateFile(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
+function getStatusBadgeClass(s) { return {'待确认':'badge-pending','待评审':'badge-review','开发中':'badge-dev','测试中':'badge-test','已发布':'badge-released','已关闭':'badge-closed','挂起':'badge-suspended'}[s]||''; }
+function getPriorityBadgeClass(p) { return {'P0':'badge-p0','P1':'badge-p1','P2':'badge-p2'}[p]||''; }
+function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+function generateId() { return 'DM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(); }
+
+// ==================== 3. MULTI-SELECT ====================
 const MULTI_SELECT_OPTIONS = {
     platform: ['APP', 'KILI', 'Web'],
     role: ['全部', '职能体系', '分销体系'],
     module: ['全部', '金融模式', '进件', '佣金', '商品', '结算', '风控', '订单', '考培', '数据看板', '基础模块', '广告', '消息', '催收', '其他'],
-    country: ['无', '全部', '巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索'],
-    proposerCountry: ['巴基斯坦', '孟加拉', '乌干达', '尼日利亚', '坦桑尼亚', '菲律宾', '布基纳法索']
+    country: COUNTRY_OPTIONS,
+    proposerCountry: PROPOSER_COUNTRY_OPTIONS
 };
 
 function initMultiSelect(containerId, options, selectedValues = []) {
@@ -1261,6 +1335,100 @@ async function saveReviews(reviews) {
     }
 }
 
+// ==================== 6B. COMMENTS (P1-8) ====================
+async function getComments() {
+    if (cloudbaseDb) {
+        try {
+            const res = await cloudbaseDb.collection('comments').orderBy('createdAt', 'desc').get();
+            return res.data || [];
+        } catch (e) {
+            console.error('获取评论失败:', e);
+            return JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS) || '[]');
+        }
+    }
+    return JSON.parse(localStorage.getItem(STORAGE_KEY_COMMENTS) || '[]');
+}
+
+async function saveComments(comments) {
+    if (cloudbaseDb) {
+        try {
+            const collection = cloudbaseDb.collection('comments');
+            const existing = await collection.get();
+            for (const item of existing.data || []) {
+                await collection.doc(item._id).remove();
+            }
+            for (const comment of comments) {
+                await collection.add({ data: { ...comment } });
+            }
+        } catch (e) { console.error('保存评论失败:', e); }
+    } else {
+        localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(comments));
+    }
+}
+
+async function addComment(demandId, content) {
+    if (!content.trim()) return;
+    const allComments = await getComments();
+    allComments.push({
+        id: 'CM' + Date.now().toString(36).toUpperCase(),
+        demandId,
+        author: currentUser.name,
+        authorRole: currentUser.role,
+        content: content.trim(),
+        createdAt: formatDate(new Date())
+    });
+    await saveComments(allComments);
+}
+
+function renderCommentsSection(demandId, comments) {
+    const demandComments = comments.filter(c => c.demandId === demandId);
+    const commentCount = demandComments.length;
+
+    let html = `<div class="comments-section" style="margin-top:20px;border-top:1px solid var(--gray-200);padding-top:16px;">
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:12px;">💬 评论 (${commentCount})</h4>`;
+
+    // 评论输入框
+    html += `<div style="margin-bottom:16px;">
+        <textarea id="commentInput_${demandId}" rows="2" placeholder="输入评论..." style="width:100%;padding:8px;border:1px solid var(--gray-300);border-radius:6px;font-size:13px;resize:vertical;"></textarea>
+        <div style="text-align:right;margin-top:6px;">
+            <button class="btn btn-primary btn-sm" onclick="submitComment('${demandId}')">发表评论</button>
+        </div>
+    </div>`;
+
+    // 评论列表
+    if (demandComments.length > 0) {
+        html += '<div class="comments-list">';
+        // 按时间倒序
+        const sortedComments = [...demandComments].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        sortedComments.forEach(c => {
+            html += `<div class="comment-item" style="padding:10px;background:var(--gray-50);border-radius:6px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:12px;font-weight:600;color:var(--gray-700);">${escapeHtml(c.author)} <span style="font-size:11px;color:var(--gray-400);font-weight:400;">(${c.authorRole})</span></span>
+                    <span style="font-size:11px;color:var(--gray-400);">${c.createdAt}</span>
+                </div>
+                <div style="font-size:13px;color:var(--gray-700);white-space:pre-wrap;">${escapeHtml(c.content)}</div>
+            </div>`;
+        });
+        html += '</div>';
+    } else {
+        html += '<p style="font-size:12px;color:var(--gray-400);text-align:center;padding:12px;">暂无评论</p>';
+    }
+
+    html += '</div>';
+    return html;
+}
+
+async function submitComment(demandId) {
+    const input = document.getElementById(`commentInput_${demandId}`);
+    if (!input) return;
+    const content = input.value.trim();
+    if (!content) { showToast('请输入评论内容', 'error'); return; }
+    await addComment(demandId, content);
+    showToast('评论已发表', 'success');
+    // 刷新详情弹窗
+    await viewDemand(demandId);
+}
+
 function generateId() { return 'DM' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 5).toUpperCase(); }
 
 // ==================== CREATE/EDIT MODAL ====================
@@ -1390,7 +1558,8 @@ async function handleDemandSubmit(e) {
         remark: document.getElementById('fieldRemark').value.trim(),
         pmList: Array.from(pmChecked).map(cb => cb.value),
         capability: document.getElementById('fieldCapability').value,
-        needReview: document.getElementById('fieldNeedReview').value,
+        // P1-12: P0需求强制要求评审
+        needReview: document.getElementById('fieldPriority').value === 'P0' ? '是' : document.getElementById('fieldNeedReview').value,
         updatedAt: `${currentUser.name} | ${formatDate(new Date())}`,
         createdAt: isEdit ? (demands.find(d => d.id === id)?.createdAt || '') : `${currentUser.name} | ${formatDate(new Date())}`
     };
@@ -1467,13 +1636,15 @@ async function deleteDemand(id) {
     await renderDemandTable();
 }
 
-// ==================== VIEW DETAIL ====================
+// ==================== 10. DETAIL & REVIEW ====================
 async function viewDemand(id) {
     const demands = await getDemands();
     const d = demands.find(x => x.id === id);
     if (!d) return;
     const allReviews = await getReviews();
     const reviews = allReviews.filter(r => r.demandId === id);
+    // P1-8: 获取评论数据
+    const allComments = await getComments();
     document.getElementById('detailTitle').textContent = d.title;
     document.getElementById('detailBody').innerHTML = `
         <div class="detail-grid">
@@ -1500,31 +1671,54 @@ async function viewDemand(id) {
             <div class="detail-label">备注</div><div class="detail-value" style="white-space:pre-wrap;">${escapeHtml(d.remark || '-')}</div>
             <div class="detail-label">最后更新</div><div class="detail-value">${d.updatedAt || '-'}</div>
         </div>
-        ${reviews.length > 0 ? `<div style="margin-top:20px;"><h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">审查建议 (${reviews.length})</h4>${reviews.map(r => `<div class="review-item"><div class="review-item-header"><span>${r.author} (${r.authorRole})</span><span>${r.date}</span></div><div class="review-item-content">${r.capability ? `<div><b>能力形式：</b>${r.capability}</div>` : ''}${r.module ? `<div><b>关联模块：</b>${r.module}</div>` : ''}${r.content ? `<div style="margin-top:4px;"><b>建议：</b>${escapeHtml(r.content)}</div>` : ''}</div></div>`).join('')}</div>` : ''}
+        ${reviews.length > 0 ? `<div style="margin-top:20px;"><h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">审查建议 (${reviews.length})</h4>${reviews.map(r => {
+            const resultBadge = r.result ? `<span class="badge ${r.result === '通过' ? 'badge-released' : r.result === '有条件通过' ? 'badge-pending' : 'badge-p0'}" style="margin-left:8px;">${r.result}</span>` : '';
+            const rejectInfo = r.result === '打回' && r.rejectReason ? `<div style="margin-top:4px;color:var(--danger);"><b>打回原因：</b>${escapeHtml(r.rejectReason)}</div>` : '';
+            return `<div class="review-item"><div class="review-item-header"><span>${r.author} (${r.authorRole})${resultBadge}</span><span>${r.date}</span></div><div class="review-item-content">${r.capability ? `<div><b>能力形式：</b>${r.capability}</div>` : ''}${r.module ? `<div><b>关联模块：</b>${r.module}</div>` : ''}${rejectInfo}${r.content ? `<div style="margin-top:4px;"><b>建议：</b>${escapeHtml(r.content)}</div>` : ''}</div></div>`;
+        }).join('')}</div>` : ''}
         ${renderTimeline(id)}
+        ${renderCommentsSection(id, allComments)}
     `;
     document.getElementById('detailModal').classList.add('active');
 }
 function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); }
 
-// ==================== REVIEW MODAL ====================
+// ==================== 10B. REVIEW MODAL (P1-12) ====================
 function openReviewModal(demandId) {
     document.getElementById('reviewDemandId').value = demandId;
     document.getElementById('reviewForm').reset();
     document.querySelectorAll('input[name="reviewPM"]').forEach(cb => cb.checked = false);
+    document.getElementById('rejectReasonGroup').style.display = 'none';
     document.getElementById('reviewModal').classList.add('active');
 }
 function closeReviewModal() { document.getElementById('reviewModal').classList.remove('active'); }
+
+// P1-12: 评审结果变更处理
+function handleReviewResultChange() {
+    const result = document.getElementById('reviewResult').value;
+    document.getElementById('rejectReasonGroup').style.display = result === '打回' ? '' : 'none';
+}
+
 async function handleReviewSubmit(e) {
     e.preventDefault();
     const demandId = document.getElementById('reviewDemandId').value;
     const content = document.getElementById('reviewContent').value.trim();
+    const reviewResult = document.getElementById('reviewResult').value;
+    if (!reviewResult) { showToast('请选择评审结果', 'error'); return false; }
     if (!content) { showToast('请输入审查建议', 'error'); return false; }
+    // P1-12: 打回时需要填写原因
+    if (reviewResult === '打回') {
+        const rejectReason = document.getElementById('rejectReason').value.trim();
+        if (!rejectReason) { showToast('打回时请填写原因', 'error'); return false; }
+    }
+
     const allReviews = await getReviews();
     allReviews.push({
         id: 'RV' + Date.now().toString(36).toUpperCase(),
         demandId, author: currentUser.name, authorRole: currentUser.role,
         date: formatDate(new Date()),
+        result: reviewResult,
+        rejectReason: reviewResult === '打回' ? document.getElementById('rejectReason').value.trim() : '',
         capability: document.getElementById('reviewCapability').value,
         module: document.getElementById('reviewModule').value,
         needCountry: document.getElementById('reviewNeedCountry').value,
@@ -1532,8 +1726,21 @@ async function handleReviewSubmit(e) {
         content
     });
     await saveReviews(allReviews);
+
+    // P1-12: 打回时自动将需求状态改回"待确认"
+    if (reviewResult === '打回') {
+        const demands = await getDemands();
+        const demand = demands.find(d => d.id === demandId);
+        if (demand && demand.status !== '待确认') {
+            logStatusChange(demandId, demand.status, '待确认', currentUser.name);
+            demand.status = '待确认';
+            demand.updatedAt = `${currentUser.name} | ${formatDate(new Date())}`;
+            await saveDemands(demands);
+        }
+    }
+
     closeReviewModal();
-    showToast('审查建议已提交', 'success');
+    showToast(`评审已提交：${reviewResult}`, 'success');
     await renderDemandTable();
     return false;
 }
@@ -1756,22 +1963,85 @@ async function updateBlockReminder() {
     }
 }
 
+// ==================== 7. FILTER ENGINE ====================
+// P1-7: 统一筛选引擎 - 提取重复的筛选逻辑为独立函数
+/**
+ * 统一筛选需求数据
+ * @param {Array} demands - 需求列表
+ * @param {Object} filters - 筛选条件对象
+ * @returns {Array} 筛选后的需求列表
+ */
+function filterDemands(demands, filters = {}) {
+    let result = [...demands];
+
+    // 关键词搜索（标题、编号、内容）
+    if (filters.keyword) {
+        const kw = filters.keyword.toLowerCase();
+        result = result.filter(d =>
+            (d.title || '').toLowerCase().includes(kw) ||
+            (d.id || '').toLowerCase().includes(kw) ||
+            (d.content || '').toLowerCase().includes(kw)
+        );
+    }
+
+    // 上线时间月份筛选
+    if (filters.launchMonth) {
+        result = result.filter(d => d.launchDate && d.launchDate.startsWith(filters.launchMonth));
+    }
+
+    // 预期时间月份筛选
+    if (filters.expectMonth) {
+        result = result.filter(d => d.expectDate && d.expectDate.startsWith(filters.expectMonth));
+    }
+
+    // 已应用国家筛选
+    if (filters.appliedCountry) {
+        result = result.filter(d => (d.appliedCountry || '').includes(filters.appliedCountry));
+    }
+
+    // 需要应用国家筛选
+    if (filters.needCountry) {
+        result = result.filter(d => (d.needCountry || '').includes(filters.needCountry));
+    }
+
+    // 状态筛选
+    if (filters.status) {
+        result = result.filter(d => d.status === filters.status);
+    }
+
+    // 是否需要审查筛选
+    if (filters.needReview) {
+        result = result.filter(d => d.needReview === filters.needReview);
+    }
+
+    // PM筛选
+    if (filters.pm) {
+        result = result.filter(d => (d.pmList || []).includes(filters.pm));
+    }
+
+    // 优先级筛选
+    if (filters.priority) {
+        result = result.filter(d => d.priority === filters.priority);
+    }
+
+    return result;
+}
+
 // ==================== FILTERS ====================
 async function applyListFilter() {
     let demands = await getDemands();
     const f = id => document.getElementById(id).value;
-    // 搜索标题
-    if (f('filterSearch')) {
-        const keyword = f('filterSearch').toLowerCase();
-        demands = demands.filter(d => (d.title || '').toLowerCase().includes(keyword) || (d.content || '').toLowerCase().includes(keyword));
-    }
-    if (f('filterLaunchMonth')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('filterLaunchMonth')));
-    if (f('filterExpectMonth')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('filterExpectMonth')));
-    if (f('filterAppliedCountry')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('filterAppliedCountry')));
-    if (f('filterNeedCountry')) demands = demands.filter(d => (d.needCountry || '').includes(f('filterNeedCountry')));
-    if (f('filterStatus')) demands = demands.filter(d => d.status === f('filterStatus'));
-    if (f('filterNeedReview')) demands = demands.filter(d => d.needReview === f('filterNeedReview'));
-    if (f('filterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('filterPM')));
+    const filters = {
+        keyword: f('filterSearch') || '',
+        launchMonth: f('filterLaunchMonth') || '',
+        expectMonth: f('filterExpectMonth') || '',
+        appliedCountry: f('filterAppliedCountry') || '',
+        needCountry: f('filterNeedCountry') || '',
+        status: f('filterStatus') || '',
+        needReview: f('filterNeedReview') || '',
+        pm: f('filterPM') || ''
+    };
+    demands = filterDemands(demands, filters);
     await renderDemandTable(demands);
     showToast(`筛选结果：${demands.length} 条需求`, 'info');
 }
@@ -1780,16 +2050,19 @@ async function resetListFilter() {
     await renderDemandTable();
 }
 
-// ==================== STATS ====================
+// ==================== 19. STATS & CHARTS ====================
 async function updateStats() {
     let demands = await getDemands();
     const f = id => { const el = document.getElementById(id); return el ? el.value : ''; };
-    if (f('statFilterLaunch')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('statFilterLaunch')));
-    if (f('statFilterExpect')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('statFilterExpect')));
-    if (f('statFilterApplied')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('statFilterApplied')));
-    if (f('statFilterNeed')) demands = demands.filter(d => (d.needCountry || '').includes(f('statFilterNeed')));
-    if (f('statFilterStatus')) demands = demands.filter(d => d.status === f('statFilterStatus'));
-    if (f('statFilterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('statFilterPM')));
+    // P1-7: 使用统一筛选引擎
+    demands = filterDemands(demands, {
+        launchMonth: f('statFilterLaunch') || '',
+        expectMonth: f('statFilterExpect') || '',
+        appliedCountry: f('statFilterApplied') || '',
+        needCountry: f('statFilterNeed') || '',
+        status: f('statFilterStatus') || '',
+        pm: f('statFilterPM') || ''
+    });
 
     document.getElementById('statTotal').textContent = demands.length;
     document.getElementById('statPending').textContent = demands.filter(d => d.status === '待确认').length;
@@ -1992,6 +2265,33 @@ function createScheduleModal() {
 
 function closeScheduleModal() { document.getElementById('scheduleModal').classList.remove('active'); }
 
+// ==================== 15C. SCHEDULE CONFLICT (P1-10) ====================
+/**
+ * 检测排期冲突
+ * @param {string} owner - 责任人
+ * @param {string} startDate - 开始日期
+ * @param {string} endDate - 结束日期
+ * @param {string} excludeId - 排除的排期ID（编辑时排除自身）
+ * @returns {Array} 冲突的排期列表
+ */
+async function detectScheduleConflicts(owner, startDate, endDate, excludeId = null) {
+    const schedules = await getSchedules();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    return schedules.filter(s => {
+        if (s.id === excludeId) return false;
+        if (s.owner !== owner) return false;
+        if (!s.startDate || !s.endDate) return false;
+
+        const sStart = new Date(s.startDate);
+        const sEnd = new Date(s.endDate);
+
+        // 检查日期重叠
+        return start <= sEnd && end >= sStart;
+    });
+}
+
 async function handleScheduleSubmit(e) {
     e.preventDefault();
     const id = document.getElementById('editScheduleId').value || 'SCH' + Date.now().toString(36).toUpperCase();
@@ -1999,13 +2299,25 @@ async function handleScheduleSubmit(e) {
     const schedules = await getSchedules();
     const existingSchedule = isEdit ? schedules.find(s => s.id === id) : null;
 
+    const owner = document.getElementById('scheduleOwner').value;
+    const startDate = document.getElementById('scheduleStartDate').value;
+    const endDate = document.getElementById('scheduleEndDate').value;
+
+    // P1-10: 排期冲突检测
+    if (owner && startDate && endDate) {
+        const conflicts = await detectScheduleConflicts(owner, startDate, endDate, isEdit ? id : null);
+        if (conflicts.length > 0) {
+            showToast(`⚠️ ${owner} 在 ${startDate} ~ ${endDate} 已有 ${conflicts.length} 个排期任务，注意工作负荷`, 'info');
+        }
+    }
+
     const schedule = {
         id,
         demandId: document.getElementById('scheduleDemandId').value,
-        owner: document.getElementById('scheduleOwner').value,
+        owner,
         role: document.getElementById('scheduleRole').value,
-        startDate: document.getElementById('scheduleStartDate').value,
-        endDate: document.getElementById('scheduleEndDate').value,
+        startDate,
+        endDate,
         progress: parseInt(document.getElementById('scheduleProgress').value) || 0,
         status: document.getElementById('scheduleStatus').value,
         isBlocked: document.getElementById('scheduleIsBlocked').value,
@@ -2107,6 +2419,7 @@ function setScheduleView(view) {
     renderGanttChart();
 }
 
+// ==================== 15B. GANTT CHART (P1-9) ====================
 async function renderGanttChart() {
     const schedules = await getSchedules();
     const demands = await getDemands();
@@ -2128,9 +2441,22 @@ async function renderGanttChart() {
 
     const minDate = new Date(dates[0]);
     const maxDate = new Date(dates[dates.length - 1]);
+    // P1-9: 扩展日期范围以包含今天
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (today < minDate) minDate.setTime(today.getTime());
+    if (today > maxDate) maxDate.setTime(today.getTime());
     const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
 
-    let html = `<div style="min-width:${Math.max(totalDays * 40, 400)}px;">`;
+    // P1-9: 计算今天的位置
+    const todayOffset = Math.ceil((today - minDate) / (1000 * 60 * 60 * 24));
+
+    let html = `<div style="min-width:${Math.max(totalDays * 40, 400)}px;position:relative;">`;
+
+    // P1-9: 今天标记线
+    html += `<div style="position:absolute;left:${(todayOffset/totalDays)*100}%;top:0;bottom:0;width:2px;background:var(--danger);z-index:5;opacity:0.6;" title="今天"></div>`;
+    html += `<div style="position:absolute;left:${(todayOffset/totalDays)*100}%;top:-18px;transform:translateX(-50%);font-size:10px;color:var(--danger);font-weight:600;white-space:nowrap;">今天</div>`;
+
     html += `<div style="display:flex;border-bottom:1px solid var(--gray-200);padding-bottom:8px;margin-bottom:8px;">`;
     html += `<div style="width:120px;font-weight:600;font-size:11px;">需求</div>`;
     html += `<div style="flex:1;display:flex;">`;
@@ -2140,24 +2466,36 @@ async function renderGanttChart() {
         const d = new Date(minDate);
         d.setDate(d.getDate() + i);
         const dayStr = `${d.getMonth()+1}/${d.getDate()}`;
-        html += `<div style="flex:1;text-align:center;font-size:10px;color:var(--gray-500);">${dayStr}</div>`;
+        const isToday = d.toDateString() === today.toDateString();
+        html += `<div style="flex:1;text-align:center;font-size:10px;color:${isToday ? 'var(--danger)' : 'var(--gray-500)'};font-weight:${isToday ? '700' : '400'};">${dayStr}</div>`;
     }
     html += `</div></div>`;
 
+    // P1-9: 甘特图工具提示
+    html += `<div id="ganttTooltip" style="display:none;position:absolute;background:var(--gray-800);color:white;padding:8px 12px;border-radius:6px;font-size:11px;z-index:10;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-md);"></div>`;
+
     // 排期行
-    schedules.forEach(s => {
+    schedules.forEach((s, index) => {
         const start = new Date(s.startDate);
         const end = new Date(s.endDate);
         const startOffset = Math.ceil((start - minDate) / (1000 * 60 * 60 * 24));
         const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
         const demandTitle = demandMap[s.demandId] || s.demandId;
 
-        const barColor = s.status === '已完成' ? 'var(--success)' : s.status === '已延期' ? 'var(--danger)' : s.status === '进行中' ? 'var(--primary)' : 'var(--gray-400)';
+        // P1-9: 根据状态区分颜色
+        const barColor = s.isBlocked === '是' ? '#ef4444' :
+            s.status === '已完成' ? '#10b981' :
+            s.status === '已延期' ? '#ef4444' :
+            s.status === '进行中' ? '#4f46e5' :
+            '#9ca3af';
 
-        html += `<div style="display:flex;align-items:center;margin-bottom:4px;">`;
+        // P1-9: tooltip 内容
+        const tooltipContent = `${escapeHtml(demandTitle)}\\n责任人: ${s.owner} | 角色: ${s.role}\\n进度: ${s.progress}% | 状态: ${s.isBlocked === '是' ? '卡点' : s.status}\\n${s.startDate} ~ ${s.endDate}${s.isBlocked === '是' ? '\\n卡点原因: ' + (s.blockReason || '-') : ''}`;
+
+        html += `<div style="display:flex;align-items:center;margin-bottom:4px;cursor:pointer;" onclick="openScheduleModal('${s.id}')" onmouseenter="showGanttTooltip(event, '${tooltipContent}')" onmouseleave="hideGanttTooltip()">`;
         html += `<div style="width:120px;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(demandTitle)}">${escapeHtml(demandTitle)}</div>`;
         html += `<div style="flex:1;position:relative;height:24px;">`;
-        html += `<div style="position:absolute;left:${(startOffset/totalDays)*100}%;width:${(duration/totalDays)*100}%;height:20px;background:${barColor};border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:600;min-width:30px;">${s.progress}%</div>`;
+        html += `<div style="position:absolute;left:${(startOffset/totalDays)*100}%;width:${(duration/totalDays)*100}%;height:20px;background:${barColor};border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:600;min-width:30px;transition:opacity 0.2s;" onmouseenter="this.style.opacity='0.8'" onmouseleave="this.style.opacity='1'">${s.progress}%${s.isBlocked === '是' ? ' 🚧' : ''}</div>`;
         html += `</div></div>`;
     });
 
@@ -2165,17 +2503,35 @@ async function renderGanttChart() {
     container.innerHTML = html;
 }
 
+function showGanttTooltip(event, content) {
+    const tooltip = document.getElementById('ganttTooltip');
+    if (!tooltip) return;
+    tooltip.innerHTML = content.replace(/\\n/g, '<br>');
+    tooltip.style.display = 'block';
+    tooltip.style.left = (event.pageX + 10) + 'px';
+    tooltip.style.top = (event.pageY - 40) + 'px';
+}
+
+function hideGanttTooltip() {
+    const tooltip = document.getElementById('ganttTooltip');
+    if (tooltip) tooltip.style.display = 'none';
+}
+
 // ==================== EXPORT ====================
+// ==================== 18. EXPORT ====================
 async function exportToExcel() {
     let demands = await getDemands();
     const f = id => document.getElementById(id).value;
-    if (f('filterLaunchMonth')) demands = demands.filter(d => d.launchDate && d.launchDate.startsWith(f('filterLaunchMonth')));
-    if (f('filterExpectMonth')) demands = demands.filter(d => d.expectDate && d.expectDate.startsWith(f('filterExpectMonth')));
-    if (f('filterAppliedCountry')) demands = demands.filter(d => (d.appliedCountry || '').includes(f('filterAppliedCountry')));
-    if (f('filterNeedCountry')) demands = demands.filter(d => (d.needCountry || '').includes(f('filterNeedCountry')));
-    if (f('filterStatus')) demands = demands.filter(d => d.status === f('filterStatus'));
-    if (f('filterNeedReview')) demands = demands.filter(d => d.needReview === f('filterNeedReview'));
-    if (f('filterPM')) demands = demands.filter(d => (d.pmList || []).includes(f('filterPM')));
+    // P1-7: 使用统一筛选引擎
+    demands = filterDemands(demands, {
+        launchMonth: f('filterLaunchMonth') || '',
+        expectMonth: f('filterExpectMonth') || '',
+        appliedCountry: f('filterAppliedCountry') || '',
+        needCountry: f('filterNeedCountry') || '',
+        status: f('filterStatus') || '',
+        needReview: f('filterNeedReview') || '',
+        pm: f('filterPM') || ''
+    });
     if (demands.length === 0) { showToast('没有可导出的数据', 'error'); return; }
     const headers = ['编号','标题','需求内容','需求价值','类型','端','角色','关联模块','已应用国家','需要应用国家','优先级','状态','产品PM','能力形式','登记信息','业务预期时间','上线时间','文档地址','备注','是否审查','最后更新'];
     const rows = demands.map(d => [d.id, d.title, d.content, d.value, d.type, (d.platformList||[]).join('、'), (d.roleList||[]).join('、'), (d.moduleList||[]).join('、'), (d.appliedCountryList||[]).join('、'), (d.needCountryList||[]).join('、'), d.priority, d.status, (d.pmList||[]).join('、'), d.capability, d.登记信息, d.expectDate, d.launchDate, d.docUrl, d.remark, d.needReview, d.updatedAt]);
@@ -2184,13 +2540,6 @@ async function exportToExcel() {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `需求列表_${formatDateFile(new Date())}.csv`; a.click();
     showToast(`已导出 ${demands.length} 条需求`, 'success');
 }
-
-// ==================== UTILS ====================
-function formatDate(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`; }
-function formatDateFile(d) { return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`; }
-function getStatusBadgeClass(s) { return {'待确认':'badge-pending','待评审':'badge-review','开发中':'badge-dev','测试中':'badge-test','已发布':'badge-released','已关闭':'badge-closed','挂起':'badge-suspended'}[s]||''; }
-function getPriorityBadgeClass(p) { return {'P0':'badge-p0','P1':'badge-p1','P2':'badge-p2'}[p]||''; }
-function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 function showToast(msg, type, retryFn) {
     const t = document.getElementById('toast');
     if (retryFn) {
@@ -2727,6 +3076,154 @@ function downloadReport(type) {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${type === 'weekly' ? '周报告' : '月度报告'}_${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('报告已导出', 'success');
+}
+
+// ==================== P1-11: CUSTOM REPORT ====================
+async function generateCustomReport() {
+    let demands = await getDemands();
+
+    // 收集筛选条件
+    const startDate = document.getElementById('customReportStart')?.value || '';
+    const endDate = document.getElementById('customReportEnd')?.value || '';
+    const pm = document.getElementById('customReportPm')?.value || '';
+    const country = document.getElementById('customReportCountry')?.value || '';
+    const status = document.getElementById('customReportStatus')?.value || '';
+    const priority = document.getElementById('customReportPriority')?.value || '';
+
+    // 应用筛选
+    demands = filterDemands(demands, {
+        appliedCountry: country,
+        status: status,
+        pm: pm,
+        priority: priority
+    });
+
+    // 时间范围筛选（基于预期时间）
+    if (startDate) {
+        demands = demands.filter(d => d.expectDate && d.expectDate >= startDate);
+    }
+    if (endDate) {
+        demands = demands.filter(d => d.expectDate && d.expectDate <= endDate + '-31');
+    }
+
+    if (demands.length === 0) {
+        document.getElementById('reportPreview').innerHTML = '<div class="empty-state"><p>筛选条件下无数据</p></div>';
+        return;
+    }
+
+    // 统计数据
+    const stats = {
+        total: demands.length,
+        byStatus: {},
+        byPriority: { P0: 0, P1: 0, P2: 0 },
+        byCountry: {},
+        byPm: {}
+    };
+    demands.forEach(d => {
+        stats.byStatus[d.status] = (stats.byStatus[d.status] || 0) + 1;
+        if (stats.byPriority[d.priority] !== undefined) stats.byPriority[d.priority]++;
+        (d.appliedCountryList || [d.appliedCountry]).forEach(c => {
+            if (c && c !== '无') stats.byCountry[c] = (stats.byCountry[c] || 0) + 1;
+        });
+        (d.pmList || []).forEach(p => {
+            stats.byPm[p] = (stats.byPm[p] || 0) + 1;
+        });
+    });
+
+    // 生成 HTML 预览
+    let html = '<div class="card"><div class="card-header"><h3>📝 自定义报告</h3></div><div class="card-body">';
+
+    // 筛选条件摘要
+    html += '<div style="background:var(--gray-50);padding:12px;border-radius:6px;margin-bottom:16px;font-size:12px;color:var(--gray-600);">';
+    html += '<strong>筛选条件：</strong>';
+    if (startDate) html += `开始月份: ${startDate} `;
+    if (endDate) html += `结束月份: ${endDate} `;
+    if (pm) html += `PM: ${pm} `;
+    if (country) html += `国家: ${country} `;
+    if (status) html += `状态: ${status} `;
+    if (priority) html += `优先级: ${priority}`;
+    if (!startDate && !endDate && !pm && !country && !status && !priority) html += '全部数据';
+    html += '</div>';
+
+    // 统计概览
+    html += '<div class="stats-grid" style="margin-bottom:16px;">';
+    html += `<div class="stat-card"><div class="stat-value">${stats.total}</div><div class="stat-label">总需求数</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--danger)">${stats.byPriority.P0}</div><div class="stat-label">P0</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--warning)">${stats.byPriority.P1}</div><div class="stat-label">P1</div></div>`;
+    html += `<div class="stat-card"><div class="stat-value" style="color:var(--info)">${stats.byPriority.P2}</div><div class="stat-label">P2</div></div>`;
+    html += '</div>';
+
+    // 按状态分布
+    html += '<h4 style="margin:16px 0 8px;font-size:13px;">📊 按状态分布</h4>';
+    Object.entries(stats.byStatus).sort((a, b) => b[1] - a[1]).forEach(([s, count]) => {
+        html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;"><span class="badge ${getStatusBadgeClass(s)}" style="min-width:50px;text-align:center;">${s}</span><span style="font-size:12px;">${count} 个</span></div>`;
+    });
+
+    // 需求列表
+    html += '<h4 style="margin:16px 0 8px;font-size:13px;">📋 需求列表</h4>';
+    html += '<div style="max-height:400px;overflow-y:auto;">';
+    demands.forEach(d => {
+        html += `<div style="display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--gray-100);font-size:12px;">`;
+        html += `<span style="font-family:monospace;color:var(--gray-500);min-width:50px;">${d.id}</span>`;
+        html += `<span style="flex:1;">${escapeHtml(d.title)}</span>`;
+        html += `<span class="badge ${getPriorityBadgeClass(d.priority)}" style="font-size:10px;">${d.priority}</span>`;
+        html += `<span class="badge ${getStatusBadgeClass(d.status)}" style="font-size:10px;">${d.status}</span>`;
+        html += `<span style="color:var(--gray-500);font-size:11px;">${(d.pmList || []).join(',')}</span>`;
+        html += `</div>`;
+    });
+    html += '</div>';
+
+    html += `<div style="margin-top:16px;text-align:center;"><button class="btn btn-secondary btn-sm" onclick="downloadCustomReport()">📥 下载Markdown</button></div>`;
+    html += '</div></div>';
+
+    document.getElementById('reportPreview').innerHTML = html;
+
+    // 存储报告数据
+    window._lastCustomReport = { demands, stats, filters: { startDate, endDate, pm, country, status, priority } };
+}
+
+function downloadCustomReport() {
+    const report = window._lastCustomReport;
+    if (!report) return;
+
+    let md = `# 自定义需求报告\n\n`;
+    md += `> 生成时间: ${new Date().toISOString().slice(0, 10)}\n\n`;
+
+    // 筛选条件
+    md += `## 🔍 筛选条件\n\n`;
+    const f = report.filters;
+    if (f.startDate) md += `- 开始月份: ${f.startDate}\n`;
+    if (f.endDate) md += `- 结束月份: ${f.endDate}\n`;
+    if (f.pm) md += `- 产品经理: ${f.pm}\n`;
+    if (f.country) md += `- 国家: ${f.country}\n`;
+    if (f.status) md += `- 状态: ${f.status}\n`;
+    if (f.priority) md += `- 优先级: ${f.priority}\n`;
+    if (!f.startDate && !f.endDate && !f.pm && !f.country && !f.status && !f.priority) md += `- 全部数据\n`;
+    md += '\n';
+
+    // 统计概览
+    md += `## 📊 统计概览\n\n`;
+    md += `- 总需求数: ${report.stats.total}\n`;
+    md += `- P0: ${report.stats.byPriority.P0}\n`;
+    md += `- P1: ${report.stats.byPriority.P1}\n`;
+    md += `- P2: ${report.stats.byPriority.P2}\n\n`;
+
+    // 需求列表
+    md += `## 📋 需求列表\n\n`;
+    md += `| 编号 | 标题 | 优先级 | 状态 | PM |\n`;
+    md += `|------|------|--------|------|----|\n`;
+    report.demands.forEach(d => {
+        md += `| ${d.id} | ${d.title} | ${d.priority} | ${d.status} | ${(d.pmList || []).join(',')} |\n`;
+    });
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `自定义报告_${new Date().toISOString().slice(0, 10)}.md`;
     a.click();
     URL.revokeObjectURL(url);
     showToast('报告已导出', 'success');
