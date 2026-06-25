@@ -267,6 +267,123 @@
         .form-section-header .toggle-icon.collapsed { transform: rotate(-90deg); }
         .form-section-body { padding: 16px; transition: max-height 0.3s ease, padding 0.3s ease; overflow: hidden; }
         .form-section-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; }
+
+        /* P1-1: Batch operations */
+        .batch-bar { position: sticky; top: 0; z-index: 10; background: var(--primary); color: white; padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; display: none; align-items: center; gap: 12px; box-shadow: var(--shadow-md); }
+        .batch-bar.active { display: flex; }
+        .batch-bar .batch-count { font-size: 13px; font-weight: 600; }
+        .batch-bar .batch-actions { display: flex; gap: 8px; margin-left: auto; }
+        .batch-bar .btn { font-size: 12px; padding: 6px 12px; }
+        .batch-bar .btn-batch-delete { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-delete:hover { background: rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-status { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-status:hover { background: rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-pm { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-pm:hover { background: rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-cancel { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .batch-bar .btn-batch-cancel:hover { background: rgba(255,255,255,0.1); }
+        .row-checkbox { width: 30px; text-align: center; }
+        .row-checkbox input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
+        #batchStatusModal .modal, #batchPmModal .modal { width: 400px; }
+
+        /* P1-2: Global search */
+        .global-search-wrapper { position: relative; }
+        .global-search { display: flex; align-items: center; background: var(--gray-100); border: 1px solid var(--gray-200); border-radius: 6px; padding: 6px 12px; cursor: pointer; transition: all 0.2s; min-width: 200px; }
+        .global-search:hover { border-color: var(--gray-300); }
+        .global-search .search-icon { color: var(--gray-400); margin-right: 8px; font-size: 14px; }
+        .global-search .search-placeholder { flex: 1; font-size: 13px; color: var(--gray-400); }
+        .global-search .search-shortcut { font-size: 10px; color: var(--gray-400); background: white; border: 1px solid var(--gray-200); border-radius: 3px; padding: 1px 5px; }
+        .search-panel { position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid var(--gray-200); border-radius: 8px; box-shadow: var(--shadow-lg); z-index: 200; display: none; max-height: 400px; overflow-y: auto; margin-top: 4px; }
+        .search-panel.active { display: block; }
+        .search-panel-input { padding: 12px; border-bottom: 1px solid var(--gray-200); }
+        .search-panel-input input { width: 100%; padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: 6px; font-size: 14px; outline: none; }
+        .search-panel-input input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+        .search-results { max-height: 320px; overflow-y: auto; }
+        .search-result-item { padding: 10px 16px; border-bottom: 1px solid var(--gray-100); cursor: pointer; transition: background 0.15s; }
+        .search-result-item:hover { background: var(--gray-50); }
+        .search-result-item:last-child { border-bottom: none; }
+        .search-result-id { font-family: monospace; font-size: 11px; color: var(--gray-500); }
+        .search-result-title { font-size: 13px; font-weight: 500; margin-top: 2px; }
+        .search-result-content { font-size: 12px; color: var(--gray-500); margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .search-highlight { background: #fef08a; padding: 0 2px; border-radius: 2px; }
+        .search-panel-empty { padding: 20px; text-align: center; color: var(--gray-400); font-size: 13px; }
+        .search-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 199; }
+
+        /* P1-3: Timeline */
+        .timeline { margin-top: 20px; border-top: 1px solid var(--gray-200); padding-top: 16px; }
+        .timeline h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .timeline-list { position: relative; padding-left: 24px; }
+        .timeline-list::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: var(--gray-200); }
+        .timeline-item { position: relative; padding-bottom: 16px; padding-left: 16px; }
+        .timeline-item:last-child { padding-bottom: 0; }
+        .timeline-item::before { content: ''; position: absolute; left: -20px; top: 4px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--primary); background: white; }
+        .timeline-item.status-change::before { border-color: var(--info); background: var(--info-light); }
+        .timeline-item.create::before { border-color: var(--success); background: var(--success-light); }
+        .timeline-item.edit::before { border-color: var(--warning); background: var(--warning-light); }
+        .timeline-item.review::before { border-color: #8b5cf6; background: #f3e8ff; }
+        .timeline-item-type { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; }
+        .timeline-item-time { font-size: 11px; color: var(--gray-400); }
+        .timeline-item-detail { font-size: 12px; color: var(--gray-700); margin-top: 4px; }
+        .timeline-item-operator { font-size: 11px; color: var(--gray-500); }
+
+        /* P1-4: Draft indicator */
+        .draft-indicator { position: absolute; top: 8px; right: 50px; font-size: 11px; color: var(--success); background: var(--success-light); padding: 3px 8px; border-radius: 4px; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+        .draft-indicator.show { opacity: 1; }
+
+        /* P1-5: Trend chart */
+        .trend-chart-container { position: relative; }
+        .trend-chart-container canvas { width: 100%; height: 300px; }
+        .trend-tooltip { position: absolute; background: var(--gray-800); color: white; padding: 6px 10px; border-radius: 6px; font-size: 11px; pointer-events: none; display: none; z-index: 10; white-space: nowrap; box-shadow: var(--shadow-md); }
+        .trend-legend { display: flex; gap: 16px; margin-top: 12px; justify-content: center; }
+        .trend-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--gray-600); }
+        .trend-legend-color { width: 12px; height: 3px; border-radius: 2px; }
+
+        /* P1-6: Mobile responsive */
+        .mobile-bottom-nav { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: white; border-top: 1px solid var(--gray-200); z-index: 100; padding: 4px 0; padding-bottom: env(safe-area-inset-bottom, 4px); }
+        .mobile-bottom-nav .nav-items { display: flex; justify-content: space-around; }
+        .mobile-bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; padding: 6px 4px; font-size: 10px; color: var(--gray-500); cursor: pointer; gap: 2px; min-width: 50px; }
+        .mobile-bottom-nav .nav-item.active { color: var(--primary); }
+        .mobile-bottom-nav .nav-item .nav-icon { font-size: 18px; }
+        .mobile-card-list { display: none; }
+        .demand-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; margin-bottom: 10px; }
+        .demand-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .demand-card-id { font-family: monospace; font-size: 11px; color: var(--gray-500); }
+        .demand-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+        .demand-card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .demand-card-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--gray-100); }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none !important; }
+            .main-content { margin-left: 0 !important; padding-bottom: 60px; }
+            .mobile-bottom-nav { display: block; }
+            .page-header { padding: 10px 14px; }
+            .page-header h1 { font-size: 14px; }
+            .page-header-actions { gap: 4px; }
+            .page-header-actions .btn { font-size: 11px; padding: 5px 8px; }
+            .page-body { padding: 12px; }
+            .filter-bar { padding: 8px 10px; gap: 8px; }
+            .filter-item { flex: 1; min-width: 80px; }
+            .filter-item select, .filter-item input { font-size: 11px; padding: 5px 6px; min-width: 70px; }
+            .table-wrapper { display: none; }
+            .mobile-card-list { display: block; }
+            .modal { width: 100vw !important; max-width: 100vw !important; max-height: 100vh !important; border-radius: 0 !important; }
+            .modal-overlay.active { align-items: flex-end; }
+            .modal-overlay.active .modal { transform: translateY(0); max-height: 95vh; }
+            .modal-header { border-radius: 0 !important; }
+            .modal-footer { border-radius: 0 !important; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-grid .full-width { grid-column: 1; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .detail-grid { grid-template-columns: 80px 1fr; }
+            .pagination-controls { flex-wrap: wrap; }
+            .pagination-controls button:not(#btnFirst):not(#btnPrev):not(#btnNext):not(#btnLast) { display: none; }
+            .pagination-size { display: none; }
+            .global-search { min-width: 120px; }
+            .global-search .search-shortcut { display: none; }
+            .batch-bar { flex-wrap: wrap; padding: 8px 12px; }
+            .batch-bar .batch-actions { margin-left: 0; width: 100%; justify-content: flex-end; }
+            .person-stats { grid-template-columns: repeat(2, 1fr); }
+        }
     </style>
 </head>
 <body>
@@ -341,9 +458,28 @@
         <div id="pageList" class="page-section">
             <div class="page-header">
                 <h1>需求列表</h1>
-                <div class="page-header-actions">
-                    <button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button>
-                    <button class="btn btn-secondary btn-sm" onclick="exportToExcel()">📥 导出Excel</button>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <!-- P1-2: Global search -->
+                    <div class="global-search-wrapper">
+                        <div class="global-search" onclick="openSearchPanel()">
+                            <span class="search-icon">🔍</span>
+                            <span class="search-placeholder">搜索需求...</span>
+                            <span class="search-shortcut">Ctrl+K</span>
+                        </div>
+                        <div class="search-overlay" id="searchOverlay" onclick="closeSearchPanel()" style="display:none;"></div>
+                        <div class="search-panel" id="searchPanel">
+                            <div class="search-panel-input">
+                                <input type="text" id="searchInput" placeholder="搜索标题、编号、内容..." oninput="performSearch(this.value)" autocomplete="off">
+                            </div>
+                            <div class="search-results" id="searchResults">
+                                <div class="search-panel-empty">输入关键词开始搜索</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="page-header-actions">
+                        <button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button>
+                        <button class="btn btn-secondary btn-sm" onclick="exportToExcel()">📥 导出Excel</button>
+                    </div>
                 </div>
             </div>
             <div class="page-body">
@@ -383,16 +519,29 @@
                     <div class="filter-item"><label>&nbsp;</label><button class="btn btn-primary btn-sm" onclick="applyListFilter()">筛选</button></div>
                     <div class="filter-item"><label>&nbsp;</label><button class="btn btn-secondary btn-sm" onclick="resetListFilter()">重置</button></div>
                 </div>
+                <!-- P1-1: Batch operations bar -->
+                <div class="batch-bar" id="batchBar">
+                    <span class="batch-count">已选中 <strong id="batchCount">0</strong> 项</span>
+                    <div class="batch-actions">
+                        <button class="btn btn-batch-delete" onclick="batchDelete()">🗑️ 批量删除</button>
+                        <button class="btn btn-batch-status" onclick="openBatchStatusModal()">📋 批量改状态</button>
+                        <button class="btn btn-batch-pm" onclick="openBatchPmModal()">👤 批量分配PM</button>
+                        <button class="btn btn-batch-cancel" onclick="clearBatchSelection()">✕ 取消</button>
+                    </div>
+                </div>
                 <div class="card">
                     <div class="card-body">
                         <div class="table-wrapper">
                             <table>
                                 <thead><tr>
+                                    <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
                                     <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>审查人</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
                         </div>
+                        <!-- P1-6: Mobile card list -->
+                        <div class="mobile-card-list" id="mobileCardList"></div>
                         <div id="emptyState" class="empty-state"><div class="icon">📭</div><p>暂无需求数据</p><button class="btn btn-primary btn-sm" onclick="openCreateModal()">➕ 新建需求</button></div>
                         <div id="paginationBar" class="pagination-bar" style="display:none;">
                             <div class="pagination-info">
@@ -532,6 +681,21 @@
                     <div class="card"><div class="card-header"><h3>按类型分布</h3></div><div class="card-body"><div id="typeBreakdown"></div></div></div>
                     <div class="card"><div class="card-header"><h3>按国家分布</h3></div><div class="card-body"><div id="countryBreakdown"></div></div></div>
                 </div>
+                <!-- P1-5: Trend chart -->
+                <div class="card" style="margin-top:16px;">
+                    <div class="card-header"><h3>📈 趋势分析（近8周）</h3></div>
+                    <div class="card-body">
+                        <div class="trend-chart-container">
+                            <canvas id="trendCanvas" width="800" height="300"></canvas>
+                            <div class="trend-tooltip" id="trendTooltip"></div>
+                        </div>
+                        <div class="trend-legend">
+                            <div class="trend-legend-item"><div class="trend-legend-color" style="background:var(--primary);"></div>新增需求</div>
+                            <div class="trend-legend-item"><div class="trend-legend-color" style="background:var(--success);"></div>完成需求</div>
+                            <div class="trend-legend-item"><div class="trend-legend-color" style="background:var(--danger);"></div>卡点数</div>
+                        </div>
+                    </div>
+                </div>
                 <div class="card" style="margin-top:16px;"><div class="card-header"><h3>📋 上线清单</h3></div><div class="card-body" id="releaseList"><div class="empty-state"><p>暂无已发布需求</p></div></div></div>
             </div>
         </div>
@@ -638,6 +802,17 @@
     </main>
 </div>
 
+<!-- P1-6: Mobile bottom navigation -->
+<div class="mobile-bottom-nav" id="mobileBottomNav">
+    <div class="nav-items">
+        <div class="nav-item active" onclick="switchPage('list')" data-page="list"><span class="nav-icon">📋</span><span>需求</span></div>
+        <div class="nav-item" onclick="switchPage('schedule')" data-page="schedule"><span class="nav-icon">📅</span><span>排期</span></div>
+        <div class="nav-item" onclick="switchPage('person')" data-page="person"><span class="nav-icon">👥</span><span>看板</span></div>
+        <div class="nav-item" onclick="switchPage('mytasks')" data-page="mytasks"><span class="nav-icon">📝</span><span>任务</span></div>
+        <div class="nav-item" onclick="switchPage('reports')" data-page="reports"><span class="nav-icon">📈</span><span>报告</span></div>
+    </div>
+</div>
+
 <!-- DETAIL MODAL -->
 <div id="detailModal" class="modal-overlay" onclick="if(event.target===this)closeDetailModal()">
     <div class="modal">
@@ -650,7 +825,7 @@
 <!-- CREATE/EDIT MODAL -->
 <div id="createModal" class="modal-overlay" onclick="if(event.target===this)closeCreateModal()">
     <div class="modal" style="width:860px;">
-        <div class="modal-header"><h2 id="createModalTitle">新建需求</h2><button class="modal-close" onclick="closeCreateModal()">&times;</button></div>
+        <div class="modal-header"><h2 id="createModalTitle">新建需求</h2><span class="draft-indicator" id="draftIndicator">草稿已保存</span><button class="modal-close" onclick="closeCreateModal()">&times;</button></div>
         <div class="modal-body">
             <form id="demandForm" onsubmit="return handleDemandSubmit(event)">
                 <input type="hidden" id="editDemandId" value="">
@@ -735,6 +910,57 @@
         <div class="modal-footer">
             <button class="btn btn-secondary btn-sm" onclick="closeReviewModal()">取消</button>
             <button class="btn btn-success btn-sm" onclick="document.getElementById('reviewForm').requestSubmit()">提交</button>
+        </div>
+    </div>
+</div>
+
+<!-- P1-1: BATCH STATUS MODAL -->
+<div id="batchStatusModal" class="modal-overlay" onclick="if(event.target===this)closeBatchStatusModal()">
+    <div class="modal" style="width:400px;">
+        <div class="modal-header"><h2>批量修改状态</h2><button class="modal-close" onclick="closeBatchStatusModal()">&times;</button></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>目标状态</label>
+                <select id="batchTargetStatus">
+                    <option value="">请选择</option>
+                    <option value="待确认">待确认</option>
+                    <option value="待评审">待评审</option>
+                    <option value="开发中">开发中</option>
+                    <option value="测试中">测试中</option>
+                    <option value="已发布">已发布</option>
+                    <option value="已关闭">已关闭</option>
+                    <option value="挂起">挂起</option>
+                </select>
+            </div>
+            <p style="font-size:12px;color:var(--gray-500);margin-top:8px;">将对 <strong id="batchStatusCount">0</strong> 条需求修改状态</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" onclick="closeBatchStatusModal()">取消</button>
+            <button class="btn btn-primary btn-sm" onclick="batchChangeStatus()">确认修改</button>
+        </div>
+    </div>
+</div>
+
+<!-- P1-1: BATCH PM MODAL -->
+<div id="batchPmModal" class="modal-overlay" onclick="if(event.target===this)closeBatchPmModal()">
+    <div class="modal" style="width:400px;">
+        <div class="modal-header"><h2>批量分配PM</h2><button class="modal-close" onclick="closeBatchPmModal()">&times;</button></div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>选择PM（替换当前PM）</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="batchPm" value="朱黎"> 朱黎</label>
+                    <label><input type="checkbox" name="batchPm" value="张栋良"> 张栋良</label>
+                    <label><input type="checkbox" name="batchPm" value="彭程硕"> 彭程硕</label>
+                    <label><input type="checkbox" name="batchPm" value="李思开"> 李思开</label>
+                    <label><input type="checkbox" name="batchPm" value="孙佳俊"> 孙佳俊</label>
+                </div>
+            </div>
+            <p style="font-size:12px;color:var(--gray-500);margin-top:8px;">将对 <strong id="batchPmCount">0</strong> 条需求分配PM</p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" onclick="closeBatchPmModal()">取消</button>
+            <button class="btn btn-primary btn-sm" onclick="batchAssignPm()">确认分配</button>
         </div>
     </div>
 </div>
@@ -881,13 +1107,15 @@ function switchPage(page) {
     showLoading();
     document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.sidebar-nav a').forEach(el => el.classList.remove('active'));
+    // P1-6: Update mobile bottom nav
+    updateMobileNav(page);
     setTimeout(() => {
         if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
         else if (page === 'schedule') { document.getElementById('pageSchedule').style.display = ''; document.getElementById('navSchedule').classList.add('active'); renderScheduleTable(); }
         else if (page === 'person') { document.getElementById('pagePerson').style.display = ''; document.getElementById('navPerson').classList.add('active'); renderPersonDashboard(); }
         else if (page === 'mytasks') { document.getElementById('pageMyTasks').style.display = ''; document.getElementById('navMyTasks').classList.add('active'); renderMyTasks(); }
         else if (page === 'reports') { document.getElementById('pageReports').style.display = ''; document.getElementById('navReports').classList.add('active'); initReportPage(); }
-        else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); }
+        else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); drawTrendChart(); }
         hideLoading();
     }, 300);
 }
@@ -1060,6 +1288,19 @@ async function openCreateModal(id = null) {
     // P0-6: Update status selector based on flow rules
     updateStatusSelector(null, false);
 
+    // P1-4: Check for draft
+    const draft = checkForDraft(id || '');
+    if (draft) {
+        if (confirm('检测到未提交的草稿，是否恢复？')) {
+            restoreDraft(draft);
+        } else {
+            clearDraft(id || '');
+        }
+    }
+
+    // P1-4: Start auto-save timer
+    startDraftAutoSave();
+
     if (id) {
         const demands = await getDemands();
         const d = demands.find(x => x.id === id);
@@ -1095,7 +1336,12 @@ async function openCreateModal(id = null) {
     }
     document.getElementById('createModal').classList.add('active');
 }
-function closeCreateModal() { document.getElementById('createModal').classList.remove('active'); editingDemandId = null; }
+function closeCreateModal() {
+    document.getElementById('createModal').classList.remove('active');
+    editingDemandId = null;
+    // P1-4: Stop auto-save timer
+    stopDraftAutoSave();
+}
 
 function handleNeedReviewChange() {
     document.getElementById('reviewSectionInForm').style.display = document.getElementById('fieldNeedReview').value === '是' ? '' : 'none';
@@ -1181,6 +1427,8 @@ async function handleDemandSubmit(e) {
         showToast('需求创建成功', 'success');
     }
     await saveDemands(demands);
+    // P1-4: Clear draft after successful submission
+    clearDraft(id);
     closeCreateModal();
     await renderDemandTable();
     return false;
@@ -1253,6 +1501,7 @@ async function viewDemand(id) {
             <div class="detail-label">最后更新</div><div class="detail-value">${d.updatedAt || '-'}</div>
         </div>
         ${reviews.length > 0 ? `<div style="margin-top:20px;"><h4 style="font-size:14px;font-weight:600;margin-bottom:10px;">审查建议 (${reviews.length})</h4>${reviews.map(r => `<div class="review-item"><div class="review-item-header"><span>${r.author} (${r.authorRole})</span><span>${r.date}</span></div><div class="review-item-content">${r.capability ? `<div><b>能力形式：</b>${r.capability}</div>` : ''}${r.module ? `<div><b>关联模块：</b>${r.module}</div>` : ''}${r.content ? `<div style="margin-top:4px;"><b>建议：</b>${escapeHtml(r.content)}</div>` : ''}</div></div>`).join('')}</div>` : ''}
+        ${renderTimeline(id)}
     `;
     document.getElementById('detailModal').classList.add('active');
 }
@@ -1322,7 +1571,9 @@ async function renderDemandTable(filteredDemands, page) {
         const reviews = allReviews.filter(r => r.demandId === d.id);
         const reviewerInfo = reviews.length > 0 ? `${reviews[reviews.length-1].author} ${reviews[reviews.length-1].date.split(' ')[0]}` : '-';
         const canDelete = d.status === '待确认';
+        const isChecked = selectedDemandIds.has(d.id);
         return `<tr>
+            <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
             <td style="font-family:monospace;font-size:11px;">${d.id}</td>
             <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.title)}">${escapeHtml(d.title)}</td>
             <td class="content-preview" title="${escapeHtml(d.content || '')}">${escapeHtml(contentPreview)}</td>
@@ -1344,6 +1595,9 @@ async function renderDemandTable(filteredDemands, page) {
             </div></td>
         </tr>`;
     }).join('');
+
+    // Update mobile card list
+    renderMobileCards(demands);
 
     // Update pagination bar
     updatePaginationBar(demands.length);
@@ -1576,6 +1830,9 @@ async function updateStats() {
             </div>
         `).join('');
     }
+
+    // P1-5: Draw trend chart
+    drawTrendChart();
 }
 
 function renderChartBar(data, colors) {
@@ -1959,7 +2216,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     await initCloudBase();
     if (!checkSession()) document.getElementById('loginOverlay').classList.remove('hidden');
 });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetailModal(); closeCreateModal(); closeReviewModal(); closeScheduleModal(); } });
+// P1-5: Redraw trend chart on resize
+window.addEventListener('resize', () => { if (document.getElementById('pageStats').style.display !== 'none') drawTrendChart(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDetailModal(); closeCreateModal(); closeReviewModal(); closeScheduleModal(); closeBatchStatusModal(); closeBatchPmModal(); } });
 
 // ==================== DATA MIGRATION ====================
 const MIGRATION_DATA = [{"id":"D121","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["多国"],"appliedCountry":"多国","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["多国"],"proposerCountry":"多国","title":"巴基斯坦/孟加拉-Agent模式调整","content":"推进南亚的agent模式标准化建设，原有的有无BP颗粒度无法满足运营及销售的精细化运营需求及业务拓展，比如Brand Agent包含传音及其他品牌的直营agent","value":"","proposerName":"张栋良、何利观","登记信息":"张栋良","expectDate":"6月16日","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["张栋良"],"capability":"基础功能迭代","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D122","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["巴基斯坦"],"appliedCountry":"巴基斯坦","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["巴基斯坦"],"proposerCountry":"巴基斯坦","title":"巴基斯坦- 碎屏险","content":"搭售碎屏险","value":"","proposerName":"周毅，程浩","登记信息":"张栋良","expectDate":"6月16日","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["张栋良"],"capability":"已有能力复用","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D123","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["孟加拉"],"appliedCountry":"孟加拉","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["孟加拉"],"proposerCountry":"孟加拉","title":"孟加拉- BD考勤","content":"1.BD每日考勤 2.考勤数据统计 3.bdm考勤数据监管","value":"","proposerName":"凤鸣、利观","登记信息":"彭程硕","expectDate":"6月25日","launchDate":"","status":"开发中","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"新增标准能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D124","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["巴基斯坦"],"appliedCountry":"巴基斯坦","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["巴基斯坦"],"proposerCountry":"巴基斯坦","title":"巴基斯坦- agent考勤","content":"1.agent每日考勤 2.考勤数据统计 3.bdm考勤数据监管","value":"","proposerName":"周毅，程浩","登记信息":"张栋良","expectDate":"6月25日","launchDate":"","status":"开发中","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["张栋良"],"capability":"新增标准能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D125","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["多国"],"appliedCountry":"多国","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["多国"],"proposerCountry":"多国","title":"巴基斯坦/孟加拉-BD工单中心","content":"工单创建：管理团队（风控/HQ销售/HQ运营）支持多场景工单创建  \n- 工单流转：系统自动跟踪工单状态，实现任务量化统计  \n- 工单通知：BD实时接收分配任务提醒及处理要求  \n- 工单处理：BD可在线提交办单结果、上传凭证及完成反馈  \n- 考核支持：自动生成任务完成数据，替代线下考核机制","value":"","proposerName":"张栋良","登记信息":"张栋良","expectDate":"6月25日","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["张栋良"],"capability":"基础功能迭代","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D126","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["巴基斯坦"],"appliedCountry":"巴基斯坦","needCountryList":["巴基斯坦"],"needCountry":"巴基斯坦","proposerCountryList":["巴基斯坦"],"proposerCountry":"巴基斯坦","title":"多国- DRM一期建设","content":"多国- DRM标准化能力建设（Shop进件）","value":"","proposerName":"少俊","登记信息":"张栋良","expectDate":"上线待定","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["张栋良"],"capability":"新增标准能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D127","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["多国"],"appliedCountry":"多国","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["多国"],"proposerCountry":"多国","title":"多国-广告中心标签能力/埋点","content":"支持1.dealer/agent/bd标签 2.支持agent分角色标签","value":"","proposerName":"张栋良","登记信息":"张栋良","expectDate":"6月4日","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["张栋良"],"capability":"已有能力复用","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D128","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["孟加拉"],"appliedCountry":"孟加拉","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["孟加拉"],"proposerCountry":"孟加拉","title":"孟加拉-B侧催收管理体系","content":"B侧催收管理体系搭建","value":"","proposerName":"小飞","登记信息":"彭程硕","expectDate":"","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["彭程硕"],"capability":"已有能力复用","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D129","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["孟加拉"],"appliedCountry":"孟加拉","needCountryList":["孟加拉"],"needCountry":"孟加拉","proposerCountryList":["孟加拉"],"proposerCountry":"孟加拉","title":"孟加拉- 二手机售卖","content":"二手机试点售卖链路","value":"","proposerName":"王楠","登记信息":"张栋良","expectDate":"待定","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["张栋良"],"capability":"新增标准能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D130","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["孟加拉"],"appliedCountry":"孟加拉","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["孟加拉"],"proposerCountry":"孟加拉","title":"孟加拉- 现金贷渠道推广能力","content":"利用已搭建的agent网络来推广现金贷，并包含激励、催回等内容","value":"","proposerName":"高中华","登记信息":"张栋良","expectDate":"待定","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["张栋良"],"capability":"新增独有能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D131","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["巴基斯坦"],"appliedCountry":"巴基斯坦","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["巴基斯坦"],"proposerCountry":"巴基斯坦","title":"巴基斯坦-自营BP调度","content":"BDM需要感知管辖店铺的运营情况，不因bp无法正常作业导致销售下降，需要做资源缺失预警并调配资源","value":"","proposerName":"周毅，程浩","登记信息":"张栋良","expectDate":"待定","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["张栋良"],"capability":"新增标准能力","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D132","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["巴基斯坦"],"appliedCountry":"巴基斯坦","needCountryList":["巴基斯坦"],"needCountry":"巴基斯坦","proposerCountryList":["巴基斯坦"],"proposerCountry":"巴基斯坦","title":"巴基斯坦- 用户分层","content":"用户分层","value":"","proposerName":"周毅，程浩","登记信息":"张栋良","expectDate":"待定","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 6月规划","pmList":["张栋良"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D134","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["政策"],"module":"政策","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"dealer分层定级","content":"","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"3月","launchDate":"","status":"已发布","priority":"P0","docUrl":"","remark":"","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D135","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"门店模式优化","content":"增加Direct Agent，无pp账户门店绑定shop Agent，去KA标","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"3月","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D136","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"渠道差异化利率管理","content":"支持按区域、Dealer、门店、SKU维度配置渠道差异化利率","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D137","workspace":"手机分销","type":"优化","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"门店模式支持t3多门店多码牌借宿那","content":"小微商户支持T3多码牌能力，分销支持为门店创建独立码牌及结算。","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D138","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"巴基斯坦拓店能力复用尼日","content":"巴基斯坦拓店能力复用尼日，进行拓店、激活流程管理","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D139","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"手机锁预装","content":"复用坦桑预装锁能力，且在此基础上增加出库能力分配至Agent","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D140","workspace":"手机分销","type":"优化","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"增加Direct Agent类型","content":"门店模式下，增加传音导购员角色，区分PP Agent、Shop Agent、Direct Agent。","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D141","workspace":"手机分销","type":"新功能","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"还款客户位置信息透出","content":"在客户长时间逾期时，可在Partner端查询客户位置信息，便于催收","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D142","workspace":"手机分销","type":"新功能","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"BD端数据看板","content":"支持BD查看名下Dealer、Shop、Agent的销售、预期数据","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D143","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"app端重置密码","content":"支持用户自主重置登录密码","value":"","proposerName":"","登记信息":"","expectDate":"","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D144","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"实时结算从代付切换至打款平台","content":"","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"4月","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D145","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"Partner端push能力","content":"Partner app端push消息支持图文、链接","value":"","proposerName":"","登记信息":"张栋良","expectDate":"","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 方案ready","pmList":["张栋良"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D147","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"乌干达BD APP数据看板","content":"支持BD APP的Dashboard看板，包括销售数据、逾期数据","value":"","proposerName":"","登记信息":"佳俊","expectDate":"5.19","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D148","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["乌干达"],"needCountry":"乌干达","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"多门店管理以及SKU价格管理","content":"支持Agent多门店作业能力，与SKU多套价格管理（可根据不同门店配置门店售价）","value":"","proposerName":"","登记信息":"","expectDate":"待定","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D149","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"考培","content":"乌干达考培应用","value":"","proposerName":"","登记信息":"","expectDate":"待定","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D150","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["乌干达"],"needCountry":"乌干达","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"进件资料接风控","content":"乌干达KYB进件资料接风控审核","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"3月","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D151","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"Agent做客户进件时上报GPS","content":"乌干达Agent做客户进件时上报GPS，给风控","value":"","proposerName":"","登记信息":"","expectDate":"2月","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D152","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"Dealer/Agent催收任务以及奖励","content":"支持Dealer/Agent催收任务，Copy坦桑催收能力，并制定Dealer/Agent协助催收的政策","value":"","proposerName":"","登记信息":"","expectDate":"待定","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D153","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达","坦桑"],"appliedCountry":"乌干达,坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达","坦桑"],"proposerCountry":"乌干达,坦桑","title":"手机锁预装","content":"支持手机锁预装，手机库存管理","value":"","proposerName":"","登记信息":"","expectDate":"3.16","launchDate":"","status":"测试中","priority":"P0","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D154","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["基础"],"module":"基础","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["坦桑"],"needCountry":"坦桑","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"多门店管理","content":"坦桑支持多门店管理，可查看不同门店数据信息\nAPP+Web端均支持","value":"","proposerName":"Ethan","登记信息":"朱黎","expectDate":"","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 5月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D155","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["坦桑"],"needCountry":"坦桑","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"B侧催收管理体系","content":"现有任务中心、政策中心等B侧管理工具整合优化，搭建整套B侧催收体系，来支持业务优化催收激励机制，对Agent直接分派催收任务工单，以及发放催收佣金，来激励Agent完成催收任务，并加强与Agent的关联，提升积极性。","value":"","proposerName":"杨丹","登记信息":"朱黎","expectDate":"3月底","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D168","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾碎屏险支持","content":"SKU管理，支持碎屏险配置","value":"","proposerName":"王鸿","登记信息":"朱黎","expectDate":"3月底","launchDate":"","status":"测试中","priority":"P0","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D169","workspace":"手机分销","type":"优化","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"BD组织架构支持","content":"BD组织新增角色，与Agent关联","value":"","proposerName":"","登记信息":"朱黎","expectDate":"3.27","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D170","workspace":"手机分销","type":"优化","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售中"],"module":"售中","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"Kili侧导出能力支持","content":"支持Kili端Dealer/Agent/订单等列表导出能力，3.27前支持","value":"","proposerName":"","登记信息":"朱黎","expectDate":"3.27","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D172","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["基础"],"module":"基础","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾支持Web端","content":"支持Dealer 登录web/H5 端","value":"","proposerName":"朱黎","登记信息":"朱黎","expectDate":"","launchDate":"","status":"挂起","priority":"P2","docUrl":"","remark":"版本: 5月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D173","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾结算账单导出","content":"支持导出到Dealer邮箱","value":"","proposerName":"朱黎","登记信息":"朱黎","expectDate":"4月中","launchDate":"","status":"待确认","priority":"P1","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D174","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["乌干达"],"needCountry":"乌干达","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"乌干达USSD PUSH","content":"支持USSD PUSH催收能力，业务逻辑同坦桑一致，但接口接入方式与坦桑不同","value":"","proposerName":"朱黎","登记信息":"佳俊","expectDate":"5.19","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D175","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["乌干达"],"needCountry":"乌干达","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"乌干达新销售模式","content":"Direct Agent+多门店展业+分层逻辑\n分阶段\n1、先支持多门店展业链路，支持Agent可在多个门店作业（P0）\n2、支持Agent分层管理逻辑（P1）\n3、支持以SKU维度计算佣金（P0）","value":"","proposerName":"万汀","登记信息":"朱黎","expectDate":"4月底","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D176","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"多品牌销售能力支持","content":"支持多品牌手机销售能力，4月启动项目，确认方案，5月上线","value":"","proposerName":"","登记信息":"","expectDate":"5月","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"","pmList":[],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D177","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"进件字段信息补充","content":"B侧Dealer/Agent进件字段补充","value":"","proposerName":"","登记信息":"朱黎","expectDate":"3.26","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D178","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾增加Mall信息维护","content":"记录Mall与Shop关系，字段提供给风控","value":"","proposerName":"","登记信息":"朱黎","expectDate":"3.26","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D185","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"Agent协催2期优化","content":"1、佣金聚合高于1000TZS再推打款\n2、存量用户强制填写收款账户信息\n3、批量分案，任务流转至其他Agent\n4、任务完成区分还款与回收\n5、新人初始化佣金配置，目前先修改兜底佣金（收口佣金平台能力）","value":"","proposerName":"杨丹","登记信息":"彭程硕","expectDate":"5.21\n\n5.26\n\n待排期","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D186","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾接入风控引擎","content":"接入风控引擎实现对Dealer/Agent自动化管控","value":"","proposerName":"利观","登记信息":"彭程硕","expectDate":"5.21","launchDate":"","status":"测试中","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["彭程硕"],"capability":"已有能力复用","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D187","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"SKU差异化定价","content":"支持SKU已不同Shop维度差异化设定售价/加价幅度","value":"","proposerName":"李琎、利观","登记信息":"彭程硕","expectDate":"6月初","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D188","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"PP Agent佣金政策调整","content":"PP Agent在原有佣金基础上新增逾期扣款能力，佣金拆分为两个月发放","value":"","proposerName":"王鸿","登记信息":"彭程硕","expectDate":"6月中","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D189","workspace":"手机分销","type":"优化","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"菲律宾6月Partner优化","content":"菲律宾本地业务反馈Partner端内信息展示优化（待梳理）","value":"","proposerName":"王鸿","登记信息":"彭程硕","expectDate":"6月中","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D190","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"NewDA协催","content":"New Direct Agent独立配置协催规则，逾期1天即下发任务，不发放催收佣金","value":"","proposerName":"杨丹","登记信息":"彭程硕","expectDate":"5月底","launchDate":"","status":"开发中","priority":"P1","docUrl":"","remark":"版本: 5月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D191","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"考培及任务优化","content":"坦桑业务反馈考培的优化点，结合任务中心，具体内容待梳理\n1、催收任务分配，业务调整了案件分配策略，需支持批量分配能力","value":"","proposerName":"杨丹","登记信息":"彭程硕","expectDate":"6月中","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D192","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["菲律宾"],"needCountry":"菲律宾","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"Partner Sales端","content":"Partner新增Sales(BD)身份","value":"","proposerName":"王鸿","登记信息":"彭程硕","expectDate":"待定","launchDate":"","status":"待确认","priority":"P2","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D193","workspace":"手机分销","type":"新功能","platformList":["Partner"],"platform":"Partner","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["菲律宾"],"appliedCountry":"菲律宾","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["菲律宾"],"proposerCountry":"菲律宾","title":"Partner支持IOS版本","content":"IOS能力，优先支持菲律宾，已梳理功能list待后续接入开发","value":"","proposerName":"王鸿","登记信息":"彭程硕","expectDate":"待定","launchDate":"","status":"待确认","priority":"P2","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D194","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["治理"],"appliedCountry":"治理","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["治理"],"proposerCountry":"治理","title":"导出审批","content":"导出敏感数据接入平台钉钉审批能力，已耦合在Agent协催二期优化中推进","value":"","proposerName":"巧敏","登记信息":"彭程硕","expectDate":"6月初","launchDate":"","status":"开发中","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D195","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["治理"],"appliedCountry":"治理","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["治理"],"proposerCountry":"治理","title":"平台数据脱敏","content":"应治理侧要求，对Kili的敏感数据进行脱敏展示，查看明文数据走钉钉审批","value":"","proposerName":"巧敏","登记信息":"彭程硕","expectDate":"6月中","launchDate":"","status":"待确认","priority":"P2","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D196","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["治理"],"appliedCountry":"治理","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["治理"],"proposerCountry":"治理","title":"高风险配置审批","content":"高风险配置接入平台钉钉审批能力","value":"","proposerName":"巧敏","登记信息":"彭程硕","expectDate":"6月中","launchDate":"","status":"挂起","priority":"P2","docUrl":"","remark":"版本: 6月上线","pmList":["彭程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D198","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["坦桑"],"needCountry":"坦桑","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"坦桑复用工单中心","content":"坦桑出现dealer/agent帮用户垫付首付款的情况，期望接入工单中心管控B侧办单能力/结款周期","value":"","proposerName":"","登记信息":"朱黎","expectDate":"5.21","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 5月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D200","workspace":"手机分销","type":"优化","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["乌干达"],"needCountry":"乌干达","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"乌干达Distributor Agent佣金支持","content":"1、Distributor Agent进件信息支持结算账户信息提交\n2、Distributor Agent支持以SKU维度计算佣金","value":"","proposerName":"雅茹","登记信息":"朱黎","expectDate":"4月28日","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"版本: 4月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D201","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"分销平台支持发送SMS消息","content":"乌干达业务目前有批量给Dealer/Agent发短信的诉求，之前让业务在OMS上用手机号名单来支持，但是现在运维要求手机号为敏感数据，无法导出手机号\n在原有的PUSH能力上补充SMS的能力，支持选择User ID，我们调用消息中心，给手机号的方式触发消息发送","value":"","proposerName":"产品","登记信息":"佳俊","expectDate":"5.21","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 5月上线","pmList":["佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D203","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"设备管理","content":"随着坦桑业务模式的调整，逐步支持New DA与传音国代合作，以及后续要支持的OPPO模式，由直营DA团队去提货并售卖，均需要设备管理的能力，在当下手机预装锁的基础上，支持设备管理","value":"","proposerName":"","登记信息":"朱黎/思开","expectDate":"","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["朱黎/思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D204","workspace":"手机分销","type":"优化","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"OPPO手机售卖","content":"为提升坦桑销量，业务方计划在现有模式基础上引入新合作模式：与 OPPO 合作售卖 OPPO 手机。此模式需沿用现有的手机预装锁链路，以确保手机入库上报和信贷流程可控，同时保障手机销售和佣金结算的顺畅执行。\n1、商品中心，本次先后端写入OPPO机型，后续支持平台配置\n2、新增OPPO DA能力，以及支持对应的结算规则","value":"","proposerName":"","登记信息":"朱黎","expectDate":"","launchDate":"","status":"开发中","priority":"P1","docUrl":"","remark":"版本: 6月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D205","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["坦桑"],"appliedCountry":"坦桑","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑"],"proposerCountry":"坦桑","title":"差异化产品定价","content":"业务背景：目前已经启动正式合作的有Elife和Makaki，未来还会有其他的合作方。我们与每家公司的合作，都可能会制定一套专属定制的产品价格表，包括产品定价、首付比例等，这与我们PalmPay的产品价格表不一致。所以需要在产品层面，支持每个sku下面，按Dealer进行差异化定价，由PalmPay运营人员负责配置修改。这样同时保障了定价体系的稳定和安全。\n\n目的：1. 实现不同合作方的差异化定价；2. 提高价格体系的稳定性与安全性（目前MVP方案由Agent修改最终价格）","value":"","proposerName":"","登记信息":"程硕","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["程硕"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D207","workspace":"手机分销","type":"新功能","platformList":["Kili"],"platform":"Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["乌干达"],"appliedCountry":"乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["乌干达"],"proposerCountry":"乌干达","title":"佣金平台能力","content":"佣金多国平台能力建设，优先满足配置可视化能力，先切乌干达","value":"","proposerName":"","登记信息":"朱黎","expectDate":"6月中","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D208","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"拓店工具","content":"目标：提升中小型门店拓张效率\n需求：\n1、支持无PP账号的Dealer在partner进件\n2、支持无PP账号的shop在partner进件","value":"","proposerName":"","登记信息":"李思开","expectDate":"5.8","launchDate":"","status":"开发中","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D209","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"dealer名下同时存在分销模式&门店模式","content":"背景：\n门店模式的店主希望下沉市场，门店当作提货点，通过 Agent 拓客，分销模式的 Dealer 开始拓展门店业务，即：同一个 Dealer 同时具备两种业务形态。","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月中","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D210","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"D、A支持门店多级分佣","content":"背景：\n自5月中旬起，业务将重点拓展中小型门店。该类型门店主要特点为：位置相对下沉，单店销量有限，自有 Agent人力成本较高，投入产出比不合理，需要用Shop Agent 模式。\n机制：Shop Agent 由门店自主招聘及管理，底薪由门店承担，PalmPay按订单比例返佣给Agent。门店角度根据门店整体销量或业务贡献，对门店店主给予一定金额的佣金奖励。","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月中","launchDate":"","status":"待确认","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D211","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"拓店工具完整标准化","content":"接入巴基斯坦完整拓店工具方案，支持如DM、SM、DSM数据看板等功能。","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月中","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D212","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"SA逾期订单管理、SA看板","content":"背景：原门店模式下，不需要Dealer和Agent承担逾期率管控和催收职责，贷后催收由PP自营催收团队跟进。随着拓店数量的增加和销量的增加，业务希望门店模式下我们自营的PP Agent也能承担起逾期率管控和催收职责，逾期率指标将纳入到PP Agent薪资考核中。","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月下","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D213","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"设备管理+预装锁","content":"","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月底","launchDate":"","status":"挂起","priority":"P1","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D214","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["尼日"],"appliedCountry":"尼日","needCountryList":["尼日"],"needCountry":"尼日","proposerCountryList":["尼日"],"proposerCountry":"尼日","title":"B侧风险管理：风险分级对应限制","content":"为控制风险，需要增加Dealer/Agent风险管理手段，通过风控模型，风控会对Dealer/Agent输出账号冻结、作业权限冻结、作业数量限制等处罚决策，分销侧根据风控输出的决策对Dealer/Agent执行处罚。","value":"","proposerName":"","登记信息":"李思开","expectDate":"5月下","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["李思开"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D215","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售前"],"module":"售前","appliedCountryList":["布基纳法索"],"appliedCountry":"布基纳法索","needCountryList":["布基纳法索"],"needCountry":"布基纳法索","proposerCountryList":["布基纳法索"],"proposerCountry":"布基纳法索","title":"布基纳法索开国1.0","content":"布基纳法索开国1.0功能上线，业务目标6月开单","value":"","proposerName":"","登记信息":"孙佳俊","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 5月上线","pmList":["孙佳俊"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"},{"id":"D216","workspace":"手机分销","type":"新功能","platformList":["Partner","Kili"],"platform":"Partner,Kili","roleList":[],"role":"","moduleList":["售后"],"module":"售后","appliedCountryList":["坦桑/乌干达"],"appliedCountry":"坦桑/乌干达","needCountryList":["多国"],"needCountry":"多国","proposerCountryList":["坦桑/乌干达"],"proposerCountry":"坦桑/乌干达","title":"直营地推模式佣金线上化","content":"因坦桑/乌干达的直营地推模式，均直接向传音国代拿货，货款佣金仅结算成本价，当前东非以采购单提供成本价的方式进行金额维护，影响货款结算计算逻辑，需在佣金平台支持该条件","value":"","proposerName":"","登记信息":"朱黎","expectDate":"","launchDate":"","status":"挂起","priority":"P0","docUrl":"","remark":"版本: 6月上线","pmList":["朱黎"],"capability":"","needReview":"否","updatedAt":"语雀迁移 | 2026-06-22","createdAt":"语雀迁移 | 2026-06-22"}];
@@ -2471,6 +2730,559 @@ function downloadReport(type) {
     a.click();
     URL.revokeObjectURL(url);
     showToast('报告已导出', 'success');
+}
+
+// ==================== P1-1: BATCH OPERATIONS ====================
+let selectedDemandIds = new Set();
+
+function toggleSelectAll(checked) {
+    const pageDemands = getPageDemands();
+    if (checked) {
+        pageDemands.forEach(d => selectedDemandIds.add(d.id));
+    } else {
+        pageDemands.forEach(d => selectedDemandIds.delete(d.id));
+    }
+    updateRowCheckboxes();
+    updateBatchBar();
+}
+
+function toggleDemandSelection(id, checked) {
+    if (checked) selectedDemandIds.add(id);
+    else selectedDemandIds.delete(id);
+    updateSelectAllCheckbox();
+    updateBatchBar();
+}
+
+function updateRowCheckboxes() {
+    document.querySelectorAll('.demand-row-cb').forEach(cb => {
+        cb.checked = selectedDemandIds.has(cb.dataset.id);
+    });
+}
+
+function updateSelectAllCheckbox() {
+    const selectAll = document.getElementById('selectAll');
+    if (!selectAll) return;
+    const pageDemands = getPageDemands();
+    if (pageDemands.length === 0) { selectAll.checked = false; selectAll.indeterminate = false; return; }
+    const allSelected = pageDemands.every(d => selectedDemandIds.has(d.id));
+    const someSelected = pageDemands.some(d => selectedDemandIds.has(d.id));
+    selectAll.checked = allSelected;
+    selectAll.indeterminate = !allSelected && someSelected;
+}
+
+function getPageDemands() {
+    const startIdx = (currentDemandPage - 1) * demandPageSize;
+    const endIdx = startIdx + demandPageSize;
+    return allFilteredDemands.slice(startIdx, endIdx);
+}
+
+function updateBatchBar() {
+    const bar = document.getElementById('batchBar');
+    const count = document.getElementById('batchCount');
+    count.textContent = selectedDemandIds.size;
+    if (selectedDemandIds.size > 0) bar.classList.add('active');
+    else bar.classList.remove('active');
+}
+
+function clearBatchSelection() {
+    selectedDemandIds.clear();
+    updateRowCheckboxes();
+    updateSelectAllCheckbox();
+    updateBatchBar();
+}
+
+async function batchDelete() {
+    if (selectedDemandIds.size === 0) return;
+    const demands = await getDemands();
+    const selected = demands.filter(d => selectedDemandIds.has(d.id));
+    const deletable = selected.filter(d => d.status === '待确认');
+    const nonDeletable = selected.filter(d => d.status !== '待确认');
+
+    if (deletable.length === 0) {
+        showToast('选中的需求中没有"待确认"状态的，无法删除', 'error');
+        return;
+    }
+
+    let msg = `确定删除 ${deletable.length} 条"待确认"状态的需求吗？\n\n⚠️ 此操作不可恢复！`;
+    if (nonDeletable.length > 0) msg += `\n\n（另有 ${nonDeletable.length} 条非"待确认"状态的需求将被跳过）`;
+    if (!confirm(msg)) return;
+
+    const deleteIds = new Set(deletable.map(d => d.id));
+    let remaining = demands.filter(d => !deleteIds.has(d.id));
+    await saveDemands(remaining);
+
+    // Also delete related reviews
+    let allReviews = await getReviews();
+    allReviews = allReviews.filter(r => !deleteIds.has(r.demandId));
+    await saveReviews(allReviews);
+
+    selectedDemandIds.clear();
+    updateBatchBar();
+    showToast(`已删除 ${deletable.length} 条需求`, 'success');
+    await renderDemandTable();
+}
+
+function openBatchStatusModal() {
+    if (selectedDemandIds.size === 0) return;
+    document.getElementById('batchStatusCount').textContent = selectedDemandIds.size;
+    document.getElementById('batchTargetStatus').value = '';
+    document.getElementById('batchStatusModal').classList.add('active');
+}
+function closeBatchStatusModal() { document.getElementById('batchStatusModal').classList.remove('active'); }
+
+async function batchChangeStatus() {
+    const targetStatus = document.getElementById('batchTargetStatus').value;
+    if (!targetStatus) { showToast('请选择目标状态', 'error'); return; }
+
+    const demands = await getDemands();
+    let changed = 0;
+    demands.forEach(d => {
+        if (selectedDemandIds.has(d.id)) {
+            if (d.status !== targetStatus) {
+                logStatusChange(d.id, d.status, targetStatus, currentUser.name);
+                d.status = targetStatus;
+                d.updatedAt = `${currentUser.name} | ${formatDate(new Date())}`;
+                changed++;
+            }
+        }
+    });
+
+    await saveDemands(demands);
+    closeBatchStatusModal();
+    clearBatchSelection();
+    showToast(`已将 ${changed} 条需求状态修改为"${targetStatus}"`, 'success');
+    await renderDemandTable();
+}
+
+function openBatchPmModal() {
+    if (selectedDemandIds.size === 0) return;
+    document.getElementById('batchPmCount').textContent = selectedDemandIds.size;
+    document.querySelectorAll('input[name="batchPm"]').forEach(cb => cb.checked = false);
+    document.getElementById('batchPmModal').classList.add('active');
+}
+function closeBatchPmModal() { document.getElementById('batchPmModal').classList.remove('active'); }
+
+async function batchAssignPm() {
+    const checked = document.querySelectorAll('input[name="batchPm"]:checked');
+    if (checked.length === 0) { showToast('请至少选择一个PM', 'error'); return; }
+    const pmList = Array.from(checked).map(cb => cb.value);
+
+    const demands = await getDemands();
+    let changed = 0;
+    demands.forEach(d => {
+        if (selectedDemandIds.has(d.id)) {
+            d.pmList = pmList;
+            d.updatedAt = `${currentUser.name} | ${formatDate(new Date())}`;
+            changed++;
+        }
+    });
+
+    await saveDemands(demands);
+    closeBatchPmModal();
+    clearBatchSelection();
+    showToast(`已为 ${changed} 条需求分配PM: ${pmList.join('、')}`, 'success');
+    await renderDemandTable();
+}
+
+// ==================== P1-2: GLOBAL SEARCH ====================
+let searchDebounceTimer = null;
+
+function openSearchPanel() {
+    document.getElementById('searchPanel').classList.add('active');
+    document.getElementById('searchOverlay').style.display = 'block';
+    setTimeout(() => document.getElementById('searchInput').focus(), 100);
+}
+
+function closeSearchPanel() {
+    document.getElementById('searchPanel').classList.remove('active');
+    document.getElementById('searchOverlay').style.display = 'none';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResults').innerHTML = '<div class="search-panel-empty">输入关键词开始搜索</div>';
+}
+
+async function performSearch(keyword) {
+    clearTimeout(searchDebounceTimer);
+    if (!keyword || keyword.trim().length === 0) {
+        document.getElementById('searchResults').innerHTML = '<div class="search-panel-empty">输入关键词开始搜索</div>';
+        return;
+    }
+    searchDebounceTimer = setTimeout(async () => {
+        const kw = keyword.toLowerCase().trim();
+        const demands = await getDemands();
+        const results = demands.filter(d =>
+            (d.title || '').toLowerCase().includes(kw) ||
+            (d.id || '').toLowerCase().includes(kw) ||
+            (d.content || '').toLowerCase().includes(kw)
+        ).slice(0, 20);
+
+        const container = document.getElementById('searchResults');
+        if (results.length === 0) {
+            container.innerHTML = '<div class="search-panel-empty">未找到匹配的需求</div>';
+            return;
+        }
+
+        container.innerHTML = results.map(d => {
+            const titleHtml = highlightText(escapeHtml(d.title), keyword);
+            const contentHtml = highlightText(escapeHtml((d.content || '').substring(0, 80)), keyword);
+            return `<div class="search-result-item" onclick="viewDemandFromSearch('${d.id}')">
+                <div class="search-result-id">${d.id} · <span class="badge ${getStatusBadgeClass(d.status)}" style="font-size:9px;">${d.status}</span></div>
+                <div class="search-result-title">${titleHtml}</div>
+                <div class="search-result-content">${contentHtml}</div>
+            </div>`;
+        }).join('');
+    }, 200);
+}
+
+function highlightText(text, keyword) {
+    if (!keyword) return text;
+    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escaped})`, 'gi');
+    return text.replace(regex, '<span class="search-highlight">$1</span>');
+}
+
+function viewDemandFromSearch(id) {
+    closeSearchPanel();
+    viewDemand(id);
+}
+
+// Keyboard shortcuts for search
+document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        openSearchPanel();
+    }
+    if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        openSearchPanel();
+    }
+    if (e.key === 'Escape') {
+        closeSearchPanel();
+    }
+});
+
+// ==================== P1-3: TIMELINE ====================
+function renderTimeline(demandId) {
+    const logs = JSON.parse(localStorage.getItem(STORAGE_KEY_STATUS_LOG) || '[]');
+    const demandLogs = logs.filter(l => l.demandId === demandId);
+
+    if (demandLogs.length === 0) {
+        return '<div class="timeline"><h4>📋 操作时间线</h4><p style="font-size:12px;color:var(--gray-400);">暂无操作记录</p></div>';
+    }
+
+    const items = demandLogs.map(log => {
+        const typeClass = 'status-change';
+        const typeLabel = '状态变更';
+        const detail = `${log.fromStatus} → ${log.toStatus}`;
+        return `<div class="timeline-item ${typeClass}">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="timeline-item-type">${typeLabel}</span>
+                <span class="timeline-item-time">${log.timestamp}</span>
+            </div>
+            <div class="timeline-item-detail">${detail}</div>
+            <div class="timeline-item-operator">操作人：${log.operator}</div>
+        </div>`;
+    }).join('');
+
+    return `<div class="timeline"><h4>📋 操作时间线</h4><div class="timeline-list">${items}</div></div>`;
+}
+
+// ==================== P1-4: DRAFT AUTO-SAVE ====================
+let draftTimer = null;
+let currentDraftKey = null;
+
+function getDraftKey(demandId) {
+    const userId = currentUser ? currentUser.username : 'anon';
+    return `demand_draft_${userId}_${demandId || 'new'}`;
+}
+
+function startDraftAutoSave() {
+    stopDraftAutoSave();
+    draftTimer = setInterval(() => {
+        saveDraft();
+    }, 30000); // 30 seconds
+}
+
+function stopDraftAutoSave() {
+    if (draftTimer) { clearInterval(draftTimer); draftTimer = null; }
+}
+
+function saveDraft() {
+    if (!currentUser) return;
+    const demandId = document.getElementById('editDemandId').value || '';
+    const key = getDraftKey(demandId);
+    currentDraftKey = key;
+
+    const draft = {
+        type: document.getElementById('fieldType').value,
+        platform: getMultiSelectValues('msPlatform'),
+        role: getMultiSelectValues('msRole'),
+        module: getMultiSelectValues('msModule'),
+        appliedCountry: getMultiSelectValues('msAppliedCountry'),
+        needCountry: getMultiSelectValues('msNeedCountry'),
+        proposerCountry: getMultiSelectValues('msProposerCountry'),
+        title: document.getElementById('fieldTitle').value,
+        content: document.getElementById('fieldContent').value,
+        value: document.getElementById('fieldValue').value,
+        proposerName: document.getElementById('fieldProposerName').value,
+        expectDate: document.getElementById('fieldExpectDate').value,
+        launchDate: document.getElementById('fieldLaunchDate').value,
+        status: document.getElementById('fieldStatus').value,
+        priority: document.getElementById('fieldPriority').value,
+        docUrl: document.getElementById('fieldDocUrl').value,
+        remark: document.getElementById('fieldRemark').value,
+        capability: document.getElementById('fieldCapability').value,
+        needReview: document.getElementById('fieldNeedReview').value,
+        pmList: Array.from(document.querySelectorAll('input[name="fieldPM"]:checked')).map(cb => cb.value),
+        savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(key, JSON.stringify(draft));
+
+    // Show draft indicator
+    const indicator = document.getElementById('draftIndicator');
+    if (indicator) {
+        indicator.classList.add('show');
+        setTimeout(() => indicator.classList.remove('show'), 2000);
+    }
+}
+
+function checkForDraft(demandId) {
+    if (!currentUser) return;
+    const key = getDraftKey(demandId);
+    const draft = localStorage.getItem(key);
+    if (draft) {
+        return JSON.parse(draft);
+    }
+    return null;
+}
+
+function restoreDraft(draft) {
+    if (!draft) return;
+    document.getElementById('fieldType').value = draft.type || '';
+    if (draft.platform) initMultiSelect('msPlatform', MULTI_SELECT_OPTIONS.platform, draft.platform);
+    if (draft.role) initMultiSelect('msRole', MULTI_SELECT_OPTIONS.role, draft.role);
+    if (draft.module) initMultiSelect('msModule', MULTI_SELECT_OPTIONS.module, draft.module);
+    if (draft.appliedCountry) initMultiSelect('msAppliedCountry', MULTI_SELECT_OPTIONS.country, draft.appliedCountry);
+    if (draft.needCountry) initMultiSelect('msNeedCountry', MULTI_SELECT_OPTIONS.country, draft.needCountry);
+    if (draft.proposerCountry) initMultiSelect('msProposerCountry', MULTI_SELECT_OPTIONS.proposerCountry, draft.proposerCountry);
+    document.getElementById('fieldTitle').value = draft.title || '';
+    document.getElementById('fieldContent').value = draft.content || '';
+    document.getElementById('fieldValue').value = draft.value || '';
+    document.getElementById('fieldProposerName').value = draft.proposerName || '';
+    document.getElementById('fieldExpectDate').value = draft.expectDate || '';
+    document.getElementById('fieldLaunchDate').value = draft.launchDate || '';
+    document.getElementById('fieldStatus').value = draft.status || '待确认';
+    document.getElementById('fieldPriority').value = draft.priority || '';
+    document.getElementById('fieldDocUrl').value = draft.docUrl || '';
+    document.getElementById('fieldRemark').value = draft.remark || '';
+    document.getElementById('fieldCapability').value = draft.capability || '';
+    document.getElementById('fieldNeedReview').value = draft.needReview || '否';
+    handleNeedReviewChange();
+    document.querySelectorAll('input[name="fieldPM"]').forEach(cb => { cb.checked = (draft.pmList || []).includes(cb.value); });
+    // Update char counts
+    document.getElementById('titleCharCount').textContent = (draft.title || '').length;
+    document.getElementById('valueCharCount').textContent = (draft.value || '').length;
+    document.getElementById('remarkCharCount').textContent = (draft.remark || '').length;
+}
+
+function clearDraft(demandId) {
+    const key = getDraftKey(demandId);
+    localStorage.removeItem(key);
+}
+
+// ==================== P1-5: TREND CHART ====================
+async function drawTrendChart() {
+    const canvas = document.getElementById('trendCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = 300 * dpr;
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = '300px';
+    ctx.scale(dpr, dpr);
+
+    const W = rect.width;
+    const H = 300;
+    const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+    const chartW = W - pad.left - pad.right;
+    const chartH = H - pad.top - pad.bottom;
+
+    // Get data
+    const demands = await getDemands();
+    const schedules = await getSchedules();
+    const now = new Date();
+
+    // Calculate 8 weeks of data
+    const weeks = [];
+    for (let i = 7; i >= 0; i--) {
+        const weekEnd = new Date(now);
+        weekEnd.setDate(now.getDate() - (i * 7));
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekEnd.getDate() - 6);
+        weeks.push({ start: weekStart, end: weekEnd, label: `${weekStart.getMonth()+1}/${weekStart.getDate()}` });
+    }
+
+    const weekData = weeks.map(w => {
+        const created = demands.filter(d => {
+            if (!d.createdAt) return false;
+            const dateStr = d.createdAt.split(' | ')[1] || d.createdAt;
+            const d_date = new Date(dateStr);
+            return d_date >= w.start && d_date <= w.end;
+        }).length;
+
+        const completed = demands.filter(d => {
+            if (d.status !== '已发布' || !d.updatedAt) return false;
+            const dateStr = d.updatedAt.split(' | ')[1] || d.updatedAt;
+            const d_date = new Date(dateStr);
+            return d_date >= w.start && d_date <= w.end;
+        }).length;
+
+        const blocked = schedules.filter(s => {
+            if (s.isBlocked !== '是' || !s.blockedAt) return false;
+            const b_date = new Date(s.blockedAt);
+            return b_date >= w.start && b_date <= w.end;
+        }).length;
+
+        return { created, completed, blocked, label: w.label };
+    });
+
+    const maxVal = Math.max(...weekData.map(d => Math.max(d.created, d.completed, d.blocked)), 1);
+
+    // Clear
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = '#f3f4f6';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(W - pad.right, y);
+        ctx.stroke();
+        // Y labels
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText(Math.round(maxVal - (maxVal / 4) * i), pad.left - 8, y + 4);
+    }
+
+    // X labels
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#9ca3af';
+    weekData.forEach((d, i) => {
+        const x = pad.left + (chartW / (weekData.length - 1)) * i;
+        ctx.fillText(d.label, x, H - pad.bottom + 20);
+    });
+
+    // Draw lines
+    function drawLine(data, color, key) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        data.forEach((d, i) => {
+            const x = pad.left + (chartW / (data.length - 1)) * i;
+            const y = pad.top + chartH - (d[key] / maxVal) * chartH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // Dots
+        data.forEach((d, i) => {
+            const x = pad.left + (chartW / (data.length - 1)) * i;
+            const y = pad.top + chartH - (d[key] / maxVal) * chartH;
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        });
+    }
+
+    drawLine(weekData, '#4f46e5', 'created');
+    drawLine(weekData, '#059669', 'completed');
+    drawLine(weekData, '#dc2626', 'blocked');
+
+    // Store data for tooltip
+    canvas._trendData = weekData;
+    canvas._pad = pad;
+    canvas._chartW = chartW;
+    canvas._chartH = chartH;
+    canvas._maxVal = maxVal;
+
+    // Tooltip handler
+    canvas.onmousemove = function(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const tooltip = document.getElementById('trendTooltip');
+
+        const idx = Math.round(((mx - pad.left) / chartW) * (weekData.length - 1));
+        if (idx >= 0 && idx < weekData.length && mx >= pad.left && mx <= W - pad.right) {
+            const d = weekData[idx];
+            tooltip.innerHTML = `第${idx + 1}周 (${d.label})<br>新增: ${d.created} | 完成: ${d.completed} | 卡点: ${d.blocked}`;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (mx + 10) + 'px';
+            tooltip.style.top = (my - 40) + 'px';
+        } else {
+            tooltip.style.display = 'none';
+        }
+    };
+    canvas.onmouseleave = function() {
+        document.getElementById('trendTooltip').style.display = 'none';
+    };
+}
+
+// ==================== P1-6: MOBILE ====================
+function updateMobileNav(page) {
+    document.querySelectorAll('.mobile-bottom-nav .nav-item').forEach(el => {
+        el.classList.toggle('active', el.dataset.page === page);
+    });
+}
+
+function renderMobileCards(demands) {
+    const container = document.getElementById('mobileCardList');
+    if (!container) return;
+
+    if (!demands || demands.length === 0) {
+        container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>暂无需求数据</p></div>';
+        return;
+    }
+
+    // Use same pagination as table
+    const startIdx = (currentDemandPage - 1) * demandPageSize;
+    const endIdx = startIdx + demandPageSize;
+    const pageDemands = demands.slice(startIdx, endIdx);
+
+    container.innerHTML = pageDemands.map(d => `
+        <div class="demand-card">
+            <div class="demand-card-header">
+                <span class="demand-card-id">${d.id}</span>
+                <span class="badge ${getPriorityBadgeClass(d.priority)}">${d.priority}</span>
+            </div>
+            <div class="demand-card-title">${escapeHtml(d.title)}</div>
+            <div style="font-size:12px;color:var(--gray-600);">${escapeHtml((d.content || '').substring(0, 60))}${(d.content || '').length > 60 ? '...' : ''}</div>
+            <div class="demand-card-meta">
+                <span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span>
+                <span style="font-size:11px;color:var(--gray-500);">${d.type}</span>
+                <span style="font-size:11px;color:var(--gray-500);">${(d.moduleList || []).join('、')}</span>
+                <span style="font-size:11px;color:var(--gray-500);">${(d.pmList || []).join('、')}</span>
+            </div>
+            <div class="demand-card-actions">
+                <button class="btn btn-sm btn-secondary" onclick="viewDemand('${d.id}')" style="font-size:11px;padding:4px 8px;">查看</button>
+                <button class="btn btn-sm btn-secondary" onclick="editDemand('${d.id}')" style="font-size:11px;padding:4px 8px;">编辑</button>
+                <button class="btn btn-sm btn-secondary" onclick="openReviewModal('${d.id}')" style="font-size:11px;padding:4px 8px;">审查</button>
+                ${d.status === '待确认' ? `<button class="btn btn-sm btn-danger" onclick="deleteDemand('${d.id}')" style="font-size:11px;padding:4px 8px;">删除</button>` : ''}
+            </div>
+        </div>
+    `).join('');
 }
 </script>
 </body>
