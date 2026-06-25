@@ -1207,21 +1207,33 @@
 // P0-8: Users config with SHA-256 hashed passwords
 // Hash of '123456' = 8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92
 const _PASSWORD_HASH = '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92';
+const _PASSWORD_FALLBACK = 'fallback_56760663'; // Fallback hash for non-HTTPS environments
 const USERS = {
-    'zhuli': { name: '朱黎', role: '组长', passwordHash: _PASSWORD_HASH },
-    'zhangdongliang': { name: '张栋良', role: '组员', passwordHash: _PASSWORD_HASH },
-    'pengchengshuo': { name: '彭程硕', role: '组员', passwordHash: _PASSWORD_HASH },
-    'lisikai': { name: '李思开', role: '组员', passwordHash: _PASSWORD_HASH },
-    'sunjiajun': { name: '孙佳俊', role: '组员', passwordHash: _PASSWORD_HASH },
-    'lvshaojun': { name: '吕少俊', role: '组长', passwordHash: _PASSWORD_HASH }
+    'zhuli': { name: '朱黎', role: '组长', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK },
+    'zhangdongliang': { name: '张栋良', role: '组员', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK },
+    'pengchengshuo': { name: '彭程硕', role: '组员', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK },
+    'lisikai': { name: '李思开', role: '组员', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK },
+    'sunjiajun': { name: '孙佳俊', role: '组员', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK },
+    'lvshaojun': { name: '吕少俊', role: '组长', passwordHash: _PASSWORD_HASH, passwordFallback: _PASSWORD_FALLBACK }
 };
 
 // P0-8: SHA-256 hashing utility
 async function sha256(message) {
-    const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // crypto.subtle requires HTTPS; fallback to simple hash for HTTP
+    if (window.crypto && window.crypto.subtle) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    // Fallback: simple hash for non-HTTPS environments
+    let hash = 0;
+    for (let i = 0; i < message.length; i++) {
+        const char = message.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return 'fallback_' + Math.abs(hash).toString(16);
 }
 
 // P1-7: 统一常量 - 国家/PM/状态等下拉选项
@@ -1335,9 +1347,19 @@ async function handleLogin(e) {
     const user = USERS[username];
     if (!user) { showToast('用户名或密码错误', 'error'); return false; }
 
-    // P0-8: Compare SHA-256 hash instead of plain text
-    const inputHash = await sha256(password);
-    if (inputHash !== user.passwordHash) { showToast('用户名或密码错误', 'error'); return false; }
+    try {
+        // P0-8: Compare SHA-256 hash instead of plain text
+        const inputHash = await sha256(password);
+        // Support both SHA-256 hash and fallback hash
+        if (inputHash !== user.passwordHash && inputHash !== user.passwordFallback) {
+            showToast('用户名或密码错误', 'error');
+            return false;
+        }
+    } catch (err) {
+        console.error('Login hash error:', err);
+        showToast('登录验证失败，请刷新页面重试', 'error');
+        return false;
+    }
 
     currentUser = { username, name: user.name, role: user.role };
     saveSession(currentUser);
