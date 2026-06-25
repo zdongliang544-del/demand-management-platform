@@ -3431,6 +3431,13 @@ document.addEventListener('input', e => {
 
 // Init
 window.addEventListener('DOMContentLoaded', async () => {
+    // Force logout if ?logout parameter is present
+    if (window.location.search.includes('logout')) {
+        clearSession();
+        // Remove the logout parameter from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     // Show login overlay immediately (don't wait for CloudBase)
     document.getElementById('loginOverlay').classList.remove('hidden');
 
