@@ -1412,15 +1412,26 @@ let cloudbaseDb = null;
 async function initCloudBase() {
     if (typeof TENCENT_CLOUD_CONFIG !== 'undefined' && TENCENT_CLOUD_CONFIG.cloudbase && TENCENT_CLOUD_CONFIG.cloudbase.envId) {
         try {
-            cloudbaseApp = cloudbase.init({ env: TENCENT_CLOUD_CONFIG.cloudbase.envId });
-            // 匿名登录
-            const auth = cloudbaseApp.auth();
-            await auth.anonymousSignIn();
-            cloudbaseDb = cloudbaseApp.database();
+            // Add timeout to prevent hanging
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('CloudBase init timeout')), 10000)
+            );
+
+            const initPromise = (async () => {
+                cloudbaseApp = cloudbase.init({ env: TENCENT_CLOUD_CONFIG.cloudbase.envId });
+                const auth = cloudbaseApp.auth();
+                await auth.anonymousSignIn();
+                cloudbaseDb = cloudbaseApp.database();
+                return true;
+            })();
+
+            await Promise.race([initPromise, timeoutPromise]);
             console.log('CloudBase 已连接并登录');
             updateConnectionStatus(true);
             return true;
-        } catch (e) { console.error('CloudBase 初始化失败:', e); }
+        } catch (e) {
+            console.error('CloudBase 初始化失败:', e);
+        }
     }
     console.log('使用本地存储模式');
     updateConnectionStatus(false);
@@ -3420,8 +3431,18 @@ document.addEventListener('input', e => {
 
 // Init
 window.addEventListener('DOMContentLoaded', async () => {
-    await initCloudBase();
-    if (!checkSession()) document.getElementById('loginOverlay').classList.remove('hidden');
+    // Show login overlay immediately (don't wait for CloudBase)
+    document.getElementById('loginOverlay').classList.remove('hidden');
+
+    // Initialize CloudBase in background (non-blocking)
+    initCloudBase().catch(err => {
+        console.warn('CloudBase init failed, using local storage mode:', err);
+    });
+
+    // Check session
+    if (checkSession()) {
+        document.getElementById('loginOverlay').classList.add('hidden');
+    }
 });
 // P1-5: Redraw trend chart on resize
 window.addEventListener('resize', () => { if (document.getElementById('pageStats').style.display !== 'none') drawTrendChart(); });
