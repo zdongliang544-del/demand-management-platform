@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>分销团队需求管理平台</title>
     <script src="config.js"></script>
-    <script src="https://unpkg.com/@cloudbase/js-sdk"></script>
+    <script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -2662,7 +2662,6 @@ const STATUS_TRANSITIONS = {
     '已关闭': ['挂起'],
     '挂起': [] // Special: restore to previous status
 };
-const STORAGE_KEY_STATUS_LOG = 'demand_mgmt_status_log';
 
 function getValidStatusTransitions(currentStatus) {
     if (!currentStatus) return ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
@@ -2921,7 +2920,6 @@ function renderChartBar(data, colors) {
 }
 
 // ==================== SCHEDULE (P0-4: Cloud sync) ====================
-const STORAGE_KEY_SCHEDULE = 'demand_mgmt_schedule';
 let scheduleView = 'week';
 let _scheduleMigrated = false;
 
