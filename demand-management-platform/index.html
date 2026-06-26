@@ -2264,8 +2264,11 @@ async function deleteDemand(id) {
     let allReviews = await getReviews();
     let reviews = allReviews.filter(r => r.demandId !== id);
     await saveReviews(reviews);
+
+    // Update filtered cache and re-render from local data
+    allFilteredDemands = allFilteredDemands.filter(d => d.id !== id);
     showToast('需求已删除', 'success');
-    await renderDemandTable();
+    await renderDemandTable(demands);
 }
 
 // P2-8: Restore archived demand
