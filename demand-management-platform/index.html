@@ -1011,11 +1011,27 @@
         <div class="modal-body">
             <form id="demandForm" onsubmit="return handleDemandSubmit(event)">
                 <input type="hidden" id="editDemandId" value="">
-                <!-- P2-3: 需求模板 -->
+                <!-- PRD 快速创建 + 需求模板 -->
                 <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="togglePrdPanel()">📄 从 PRD 创建</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="showTemplatePanel()">📋 从模板创建</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="saveAsTemplate()">💾 保存为模板</button>
                 </div>
+                <!-- PRD 粘贴面板 -->
+                <div id="prdPanel" style="display:none;margin-bottom:16px;padding:12px;background:linear-gradient(135deg,#ede9fe,#e0e7ff);border:1px solid #a78bfa;border-radius:8px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                        <strong style="font-size:13px;color:#5b21b6;">📄 粘贴 PRD 内容，自动解析填充</strong>
+                        <button type="button" style="background:none;border:none;font-size:16px;cursor:pointer;color:#5b21b6;" onclick="togglePrdPanel()">✕</button>
+                    </div>
+                    <textarea id="prdInput" rows="8" placeholder="在此粘贴 PRD 文本...&#10;&#10;支持自由格式，系统会智能提取：&#10;· 需求标题（首行 / 「标题」关键词）&#10;· 需求内容（「背景」「描述」段落）&#10;· 国家、模块、平台、优先级、PM 等&#10;· 日期、标签、能力形式等" style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:10px;font-size:13px;resize:vertical;font-family:inherit;"></textarea>
+                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="parsePrdAndFill()" style="background:#7c3aed;">🔍 解析并填充</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('prdInput').value='';document.getElementById('prdResult').style.display='none';">清空</button>
+                        <span style="font-size:11px;color:#6b7280;margin-left:auto;">贴完点解析，表单自动填充 → 审核后提交</span>
+                    </div>
+                    <div id="prdResult" style="display:none;margin-top:10px;padding:10px;background:white;border-radius:6px;font-size:12px;"></div>
+                </div>
+                <!-- 模板面板 -->
                 <div id="templatePanel" style="display:none;margin-bottom:16px;padding:12px;background:var(--gray-50);border-radius:6px;">
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
                         <button type="button" class="btn btn-sm" style="background:var(--primary-light);color:var(--primary);" onclick="applyTemplate('standard')">📋 标准需求模板</button>
@@ -2063,6 +2079,183 @@ async function saveAsTemplate() {
     saveCustomTemplates(customTemplates);
     updateCustomTemplateSelect();
     showToast(`模板已保存：${templateName}`, 'success');
+}
+
+// ==================== PRD 智能解析 ====================
+function togglePrdPanel() {
+    const panel = document.getElementById('prdPanel');
+    const tplPanel = document.getElementById('templatePanel');
+    if (panel.style.display === 'none' || !panel.style.display) {
+        panel.style.display = '';
+        if (tplPanel) tplPanel.style.display = 'none';
+    } else {
+        panel.style.display = 'none';
+    }
+}
+
+function parsePrdAndFill() {
+    const text = document.getElementById('prdInput').value.trim();
+    if (!text) { showToast('请先粘贴 PRD 内容', 'error'); return; }
+
+    const result = parsePrdText(text);
+    const resultEl = document.getElementById('prdResult');
+    resultEl.style.display = '';
+    
+    let resultHtml = '<strong>解析结果：</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:6px;">';
+    let filled = 0, total = 0;
+
+    function setFormField(fieldId, value, label) {
+        total++;
+        const el = document.getElementById(fieldId);
+        if (value && el) {
+            if (el.tagName === 'SELECT' || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                el.value = value;
+            }
+            resultHtml += `<div style="color:#065f46;">✓ ${label}: ${String(value).substring(0,30)}</div>`;
+            filled++;
+        } else {
+            resultHtml += `<div style="color:#9ca3af;">- ${label}: 未识别</div>`;
+        }
+    }
+
+    var title = result.title ? result.title.substring(0, 30) : '';
+    setFormField('fieldTitle', title, '标题');
+
+    var content = result.content || result.description || text.substring(0, 500);
+    setFormField('fieldContent', content, '内容');
+
+    var type = '';
+    if (/平台/i.test(text)) type = '平台';
+    else if (/业务/i.test(text)) type = '业务';
+    setFormField('fieldType', type, '类型');
+
+    var priority = '';
+    if (/P0|p0|高优|紧急|最高优/.test(text)) priority = 'P0';
+    else if (/P1|p1|中优|重要/.test(text)) priority = 'P1';
+    else if (/P2|p2|低优|普通/.test(text)) priority = 'P2';
+    else priority = 'P1';
+    setFormField('fieldPriority', priority, '优先级');
+
+    setFormField('fieldStatus', '待确认', '状态');
+
+    function setMultiSelect(containerId, values, label) {
+        total++;
+        if (values && values.length > 0) {
+            initMultiSelect(containerId, MULTI_SELECT_OPTIONS[containerId === 'msAppliedCountry' || containerId === 'msNeedCountry' || containerId === 'msProposerCountry' ? 'country' : containerId === 'msPlatform' ? 'platform' : containerId === 'msRole' ? 'role' : 'module'], values);
+            resultHtml += `<div style="color:#065f46;">✓ ${label}: ${values.join(', ')}</div>`;
+            filled++;
+        } else {
+            resultHtml += `<div style="color:#9ca3af;">- ${label}: 未识别</div>`;
+        }
+    }
+
+    setMultiSelect('msPlatform', result.platforms, '端');
+    setMultiSelect('msModule', result.modules, '模块');
+    setMultiSelect('msAppliedCountry', result.countries, '已应用国家');
+    setMultiSelect('msNeedCountry', result.countries, '需要应用国家');
+
+    if (result.pms && result.pms.length > 0) {
+        document.querySelectorAll('input[name="fieldPM"]').forEach(function(cb) {
+            cb.checked = result.pms.indexOf(cb.value) >= 0;
+        });
+        resultHtml += `<div style="color:#065f46;grid-column:1/-1">✓ PM: ${result.pms.join(', ')}</div>`;
+        filled++;
+    } else {
+        resultHtml += `<div style="color:#9ca3af;grid-column:1/-1">- PM: 未识别</div>`;
+    }
+    total++;
+
+    if (result.value) setFormField('fieldValue', result.value, '需求价值');
+    if (result.proposer) setFormField('fieldProposerName', result.proposer, '提出人');
+    if (result.expectDate) setFormField('fieldExpectDate', result.expectDate, '预期时间');
+    if (result.capability) setFormField('fieldCapability', result.capability, '能力形式');
+    if (result.docUrl) setFormField('fieldDocUrl', result.docUrl, '文档地址');
+
+    if (result.tags && result.tags.length > 0) {
+        currentTags = result.tags.filter(function(t) { return ['紧急','客户定制','技术债务','体验优化'].indexOf(t) >= 0; });
+        renderTags();
+    }
+
+    resultHtml += `</div><div style="margin-top:8px;font-weight:600;color:${filled >= total * 0.6 ? '#065f46' : '#92400e'};">识别率 ${filled}/${total}（${Math.round(filled/total*100)}%）— 请核对并补全</div>`;
+    resultEl.innerHTML = resultHtml;
+
+    if (result.title) document.getElementById('titleCharCount').textContent = result.title.substring(0,30).length;
+    if (result.value) document.getElementById('valueCharCount').textContent = typeof result.value === 'string' ? result.value.length : 0;
+
+    showToast(`已解析并填充 ${filled} 个字段，请核对`, 'success');
+}
+
+function parsePrdText(text) {
+    var result = { title: '', content: '', description: '', platforms: [], modules: [], countries: [], pms: [], tags: [], proposer: '', value: '', capability: '', docUrl: '', expectDate: '' };
+    
+    var titleMatch = text.match(/(?:标题|Title|需求名称|需求标题|项目名称)[：:]\s*(.{1,50})/i);
+    if (titleMatch) {
+        result.title = titleMatch[1].trim();
+    } else {
+        var lines = text.split('\n');
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim();
+            if (line.length > 3 && !/^[#*\-=]+$/.test(line) && !/^(背景|需求|描述|目标|一、|二、|三、|1\.)/.test(line)) {
+                result.title = line.substring(0, 30);
+                break;
+            }
+        }
+    }
+
+    var descMatch = text.match(/(?:需求描述|需求概述|背景|需求说明|Background|Description|概述)[：:]*\s*\n?([\s\S]{30,500}?)(?=\n\s*(?:目标|方案|优先级|国家|模块|平台|类型|PM|产品PM|预期|上线|价值|备注|#))/i);
+    if (descMatch) {
+        result.content = descMatch[1].trim().substring(0, 500);
+    } else {
+        var paras = text.split(/\n\n+/);
+        var longest = '';
+        for (var j = 0; j < paras.length; j++) {
+            var p = paras[j].trim();
+            if (p.length > longest.length && p.length > 30 && !/^[#*\-]+/.test(p)) {
+                longest = p;
+            }
+        }
+        result.content = longest.substring(0, 500);
+    }
+
+    COUNTRY_OPTIONS.forEach(function(c) {
+        if (text.indexOf(c) >= 0) result.countries.push(c);
+    });
+
+    if (/APP|app|App|移动端|移动/.test(text)) result.platforms.push('APP');
+    if (/KILI|kili|Kili/.test(text)) result.platforms.push('KILI');
+    if (/Web|web|WEB|网页|PC|后台/.test(text)) result.platforms.push('Web');
+
+    MULTI_SELECT_OPTIONS.module.forEach(function(m) {
+        if (m !== '全部' && text.indexOf(m) >= 0) result.modules.push(m);
+    });
+
+    ['朱黎','张栋良','彭程硕','李思开','孙佳俊','吕少俊'].forEach(function(pm) {
+        if (text.indexOf(pm) >= 0) result.pms.push(pm);
+    });
+
+    if (/紧急|urgent|Urgent/.test(text)) result.tags.push('紧急');
+    if (/客户定制|custom|customized|定制/.test(text)) result.tags.push('客户定制');
+    if (/技术债务|tech debt|技术债/.test(text)) result.tags.push('技术债务');
+    if (/体验优化|UX|ui优化|交互优化/.test(text)) result.tags.push('体验优化');
+
+    var proposerMatch = text.match(/(?:提出人|申请人|需求方)[：:]\s*(.{2,10})/);
+    if (proposerMatch) result.proposer = proposerMatch[1].trim();
+
+    var valueMatch = text.match(/(?:价值|目标|收益|Goal|Value)[：:]*\s*\n?([\s\S]{5,100}?)(?=\n\s*(?:$|方案|实现|#))/i);
+    if (valueMatch) result.value = valueMatch[1].trim().substring(0, 100);
+
+    var capOptions = ['标准能力新增','标准能力迭代','基础能力迭代','基础能力复用','已有能力迭代','差异能力新增','差异能力迭代'];
+    for (var k = 0; k < capOptions.length; k++) {
+        if (text.indexOf(capOptions[k]) >= 0) { result.capability = capOptions[k]; break; }
+    }
+
+    var urlMatch = text.match(/(https?:\/\/[^\s\n]{5,200})/);
+    if (urlMatch) result.docUrl = urlMatch[1];
+
+    var dateMatch = text.match(/(?:预期|期望|上线|截止|Due|Launch)[^：:]*[：:]\s*(\d{4}[-/]\d{1,2}[-/]\d{1,2})/);
+    if (dateMatch) result.expectDate = dateMatch[1].replace(/\//g, '-');
+
+    return result;
 }
 
 // ==================== P2-4: DEMAND TAGS ====================
