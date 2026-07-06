@@ -480,9 +480,6 @@
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
             </a>
-            <div style="padding:8px 16px;margin-top:8px;">
-                <button class="btn btn-sm" style="width:100%;background:var(--warning);color:white;font-size:11px;" onclick="batchImportDemands()">📥 导入语雀数据</button>
-            </div>
         </nav>
         <div class="sidebar-footer">
             <!-- P2-2: 设置入口（仅组长可见） -->
@@ -991,28 +988,9 @@
                 <input type="hidden" id="editDemandId" value="">
                 <!-- PRD 快速创建 + 需求模板 -->
                 <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-                    <button type="button" class="btn btn-sm" style="background:#059669;color:white;" onclick="toggleYuquePanel()">📗 从语雀创建</button>
                     <button type="button" class="btn btn-sm" style="background:#7c3aed;color:white;" onclick="togglePrdPanel()">📄 从 PRD 创建</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="showTemplatePanel()">📋 从模板创建</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="saveAsTemplate()">💾 保存为模板</button>
-                </div>
-                <!-- 语雀文档面板 -->
-                <div id="yuquePanel" style="display:none;margin-bottom:16px;padding:12px;background:linear-gradient(135deg,#d1fae5,#ccfbf1);border:1px solid #34d399;border-radius:8px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                        <strong style="font-size:13px;color:#065f46;">📗 语雀文档链接，发送给我自动创建</strong>
-                        <button type="button" style="background:none;border:none;font-size:16px;cursor:pointer;color:#065f46;" onclick="toggleYuquePanel()">✕</button>
-                    </div>
-                    <input type="text" id="yuqueUrlInput" placeholder="粘贴语雀文档链接，例如：https://www.yuque.com/group/book/doc-slug" style="width:100%;border:1px solid #d1d5db;border-radius:6px;padding:10px;font-size:13px;">
-                    <div style="margin-top:12px;padding:12px;background:white;border-radius:6px;font-size:13px;color:#374151;line-height:1.8;">
-                        <strong style="color:#059669;">🔗 三步完成创建：</strong>
-                        <div style="margin-top:6px;">1. 在上方粘贴语雀文档链接</div>
-                        <div>2. 点击下方「<strong>复制链接并发送</strong>」</div>
-                        <div>3. 将链接贴到 <strong>WorkBuddy 对话框</strong>，我来获取文档内容并自动创建需求</div>
-                    </div>
-                    <div style="margin-top:8px;display:flex;gap:8px;align-items:center;">
-                        <button type="button" class="btn btn-primary btn-sm" onclick="copyYuqueAndPrompt()" style="background:#059669;">📋 复制链接并发送</button>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('yuqueUrlInput').value='';">清空</button>
-                    </div>
                 </div>
                 <!-- PRD 粘贴面板 -->
                 <div id="prdPanel" style="display:none;margin-bottom:16px;padding:12px;background:linear-gradient(135deg,#ede9fe,#e0e7ff);border:1px solid #a78bfa;border-radius:8px;">
@@ -2080,40 +2058,12 @@ async function saveAsTemplate() {
 function togglePrdPanel() {
     const panel = document.getElementById('prdPanel');
     const tplPanel = document.getElementById('templatePanel');
-    const yqPanel = document.getElementById('yuquePanel');
     if (panel.style.display === 'none' || !panel.style.display) {
         panel.style.display = '';
         if (tplPanel) tplPanel.style.display = 'none';
-        if (yqPanel) yqPanel.style.display = 'none';
     } else {
         panel.style.display = 'none';
     }
-}
-
-function toggleYuquePanel() {
-    const panel = document.getElementById('yuquePanel');
-    const tplPanel = document.getElementById('templatePanel');
-    const prdPanel = document.getElementById('prdPanel');
-    if (panel.style.display === 'none' || !panel.style.display) {
-        panel.style.display = '';
-        if (tplPanel) tplPanel.style.display = 'none';
-        if (prdPanel) prdPanel.style.display = 'none';
-    } else {
-        panel.style.display = 'none';
-    }
-}
-
-function copyYuqueAndPrompt() {
-    const url = document.getElementById('yuqueUrlInput').value.trim();
-    if (!url) { showToast('请先粘贴语雀文档链接', 'error'); return; }
-    if (!/yuque\.com/.test(url)) { showToast('请输入语雀文档链接（yuque.com）', 'error'); return; }
-
-    navigator.clipboard.writeText(url).then(function() {
-        showToast('链接已复制！请粘贴到 WorkBuddy 对话框发送给我，我来创建需求', 'success');
-        document.getElementById('yuquePanel').style.display = 'none';
-    }).catch(function() {
-        showToast('复制失败，请手动复制链接发送给我', 'error');
-    });
 }
 
 function parsePrdAndFill() {
