@@ -583,7 +583,7 @@
                             <table>
                                 <thead><tr>
                                     <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
-                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>开始时间</th><th>上线时间</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>操作</th>
+                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>业务预期时间</th><th>上线时间</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
@@ -1029,7 +1029,7 @@
                             <div class="form-group"><label>需要应用国家 <span style="color:var(--danger)">*</span></label><div class="multi-select" id="msNeedCountry"></div></div>
                             <div class="form-group full-width"><label>需求标题 <span style="color:var(--danger)">*</span></label><input type="text" id="fieldTitle" maxlength="30" placeholder="限制30字" required><div style="font-size:10px;color:var(--gray-400);margin-top:2px;"><span id="titleCharCount">0</span>/30</div></div>
                             <div class="form-group full-width"><label>需求内容 <span style="color:var(--danger)">*</span></label><textarea id="fieldContent" rows="3" placeholder="可输入文本、链接或图片地址" required></textarea></div>
-                            <div class="form-group"><label>当前状态 <span style="color:var(--danger)">*</span></label><select id="fieldStatus" required onchange="handleDevStatusDateCheck()"><option value="">请选择</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select></div>
+                            <div class="form-group"><label>当前状态 <span style="color:var(--danger)">*</span></label><select id="fieldStatus" required><option value="">请选择</option><option value="待确认">待确认</option><option value="待评审">待评审</option><option value="开发中">开发中</option><option value="测试中">测试中</option><option value="已发布">已发布</option><option value="已关闭">已关闭</option><option value="挂起">挂起</option></select></div>
                             <div class="form-group"><label>优先级 <span style="color:var(--danger)">*</span></label><select id="fieldPriority" required><option value="">请选择</option><option value="P0">P0</option><option value="P1">P1</option><option value="P2">P2</option></select></div>
                             <div class="form-group full-width"><label>产品PM <span style="color:var(--danger)">*</span></label><div class="checkbox-group"><label><input type="checkbox" name="fieldPM" value="朱黎"> 朱黎</label><label><input type="checkbox" name="fieldPM" value="张栋良"> 张栋良</label><label><input type="checkbox" name="fieldPM" value="彭程硕"> 彭程硕</label><label><input type="checkbox" name="fieldPM" value="李思开"> 李思开</label><label><input type="checkbox" name="fieldPM" value="孙佳俊"> 孙佳俊</label></div></div>
                         </div>
@@ -1061,9 +1061,8 @@
                             </div>
                             <div class="form-group"><label>需求提出人</label><input type="text" id="fieldProposerName" placeholder="提出人姓名"></div>
                             <div class="form-group"><label>需求提出国家</label><div class="multi-select" id="msProposerCountry"></div></div>
-                            <div class="form-group"><label>开始时间</label><input type="date" id="fieldStartDate" onchange="handleDevStatusDateCheck()"></div>
-                            <div class="form-group"><label>上线时间</label><input type="date" id="fieldEndDate" onchange="handleDevStatusDateCheck()"></div>
                             <div class="form-group"><label>业务预期时间</label><input type="date" id="fieldExpectDate"></div>
+                            <div class="form-group"><label>上线时间</label><input type="date" id="fieldLaunchDate"></div>
                             <div class="form-group"><label>上线时间</label><input type="date" id="fieldLaunchDate"></div>
                             <div class="form-group"><label>文档地址</label><input type="text" id="fieldDocUrl" placeholder="可输入文本或链接"></div>
                             <div class="form-group"><label>能力形式</label><select id="fieldCapability"><option value="">请选择</option><option value="标准能力新增">标准能力新增</option><option value="标准能力迭代">标准能力迭代</option><option value="基础能力迭代">基础能力迭代</option><option value="基础能力复用">基础能力复用</option><option value="已有能力迭代">已有能力迭代</option><option value="差异能力新增">差异能力新增</option><option value="差异能力迭代">差异能力迭代</option></select></div>
@@ -2381,10 +2380,7 @@ async function openCreateModal(id = null) {
             document.getElementById('fieldProposerName').value = d.proposerName || '';
             document.getElementById('fieldRegInfo').value = d.登记信息 || '';
             document.getElementById('fieldExpectDate').value = d.expectDate;
-            document.getElementById('fieldStartDate').value = d.startDate || '';
-            document.getElementById('fieldEndDate').value = d.endDate || '';
             document.getElementById('fieldLaunchDate').value = d.launchDate;
-            handleDevStatusDateCheck();
             // P0-6: Update status selector with flow rules
             updateStatusSelector(d.status, true);
             document.getElementById('fieldStatus').value = d.status;
@@ -2415,24 +2411,6 @@ function handleNeedReviewChange() {
     document.getElementById('reviewSectionInForm').style.display = document.getElementById('fieldNeedReview').value === '是' ? '' : 'none';
 }
 
-function handleDevStatusDateCheck() {
-    // Visual hint: when 开发中/测试中, highlight date fields
-    const status = document.getElementById('fieldStatus').value;
-    ['fieldStartDate', 'fieldEndDate'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        if (status === '开发中' || status === '测试中') {
-            el.style.borderColor = 'var(--danger)';
-            el.style.borderWidth = '2px';
-            el.required = true;
-        } else {
-            el.style.borderColor = '';
-            el.style.borderWidth = '';
-            el.required = false;
-        }
-    });
-}
-
 async function handleDemandSubmit(e) {
     e.preventDefault();
     // 验证多选字段
@@ -2443,11 +2421,6 @@ async function handleDemandSubmit(e) {
     if (getMultiSelectValues('msNeedCountry').length === 0) { showToast('请选择至少一个需要应用国家', 'error'); return false; }
     const pmChecked = document.querySelectorAll('input[name="fieldPM"]:checked');
     if (pmChecked.length === 0) { showToast('请至少选择一个产品PM', 'error'); return false; }
-    // 开发中/测试中状态必须填写开始时间和上线时间
-    const demandStatus = document.getElementById('fieldStatus').value;
-    if ((demandStatus === '开发中' || demandStatus === '测试中') && (!document.getElementById('fieldStartDate').value || !document.getElementById('fieldEndDate').value)) {
-        showToast('"开发中"或"测试中"状态必须填写开始时间和上线时间', 'error'); return false;
-    }
 
     const demands = await getDemands();
     const id = document.getElementById('editDemandId').value || generateId();
@@ -2474,8 +2447,6 @@ async function handleDemandSubmit(e) {
         proposerName: document.getElementById('fieldProposerName').value.trim(),
         登记信息: isEdit ? (demands.find(d => d.id === id)?.登记信息 || '') : `${currentUser.name} | ${formatDate(new Date())}`,
         expectDate: document.getElementById('fieldExpectDate').value,
-        startDate: document.getElementById('fieldStartDate').value,
-        endDate: document.getElementById('fieldEndDate').value,
         launchDate: document.getElementById('fieldLaunchDate').value,
         status: document.getElementById('fieldStatus').value,
         priority: document.getElementById('fieldPriority').value,
@@ -2860,10 +2831,8 @@ async function renderDemandTable(filteredDemands, page) {
         const isChecked = selectedDemandIds.has(d.id);
         const isArchived = d.status === '已关闭';
         const rowStyle = isArchived ? 'background:var(--gray-50);opacity:0.7;' : '';
-        const displayStart = d.startDate || '-';
-        const displayEnd = d.endDate || '-';
-        const isDev = d.status === '开发中' || d.status === '测试中';
-        const dateStyle = isDev && d.startDate ? '' : 'color:var(--gray-400);';
+        const displayExpect = d.expectDate || '-';
+        const displayLaunch = d.launchDate || '-';
         return `<tr style="${rowStyle}">
             <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
             <td style="font-family:monospace;font-size:11px;">${d.id}</td>
@@ -2876,8 +2845,8 @@ async function renderDemandTable(filteredDemands, page) {
             <td><span class="badge ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
             <td>${(d.pmList || []).join('、')}</td>
             <td>${(d.appliedCountryList || [d.appliedCountry]).join('、')}</td>
-            <td style="font-size:11px;${dateStyle}">${displayStart}</td>
-            <td style="font-size:11px;${dateStyle}">${displayEnd}</td>
+            <td style="font-size:11px;">${displayExpect}</td>
+            <td style="font-size:11px;">${displayLaunch}</td>
             <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.登记信息 || '')}">${escapeHtml(d.登记信息 || '-')}</td>
             <td>${d.capability || '-'}</td>
             <td>${(d.tags || []).map(tag => renderTagBadge(tag)).join(' ')}</td>
