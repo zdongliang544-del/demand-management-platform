@@ -2845,11 +2845,13 @@ async function renderDemandTable(filteredDemands, page) {
         const isChecked = selectedDemandIds.has(d.id);
         const isArchived = d.status === '已关闭';
         const rowStyle = isArchived ? 'background:var(--gray-50);opacity:0.7;' : '';
+        const displayExpect = d.expectDate || '-';
+        const displayLaunch = d.launchDate || '-';
         const hasReview = d.needReview === '是';
         const reviewContent = reviews.length > 0 ? reviews[reviews.length-1].content : '';
         const reviewAuthor = reviews.length > 0 ? reviews[reviews.length-1].author : '';
         const reviewDate = reviews.length > 0 ? reviews[reviews.length-1].date.split(' ')[0] : '';
-        return `<tbody>${hasReview ? `<tr style="${rowStyle}">
+        return `${hasReview ? `<tr style="${rowStyle}">
             <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
             <td style="width:24px;"><span class="expand-arrow" onclick="toggleReviewSub('${d.id}')" id="arrow_${d.id}">▶</span></td>` : `<tr style="${rowStyle}">
             <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
@@ -2890,7 +2892,7 @@ async function renderDemandTable(filteredDemands, page) {
                 </div>
             </td>
         </tr>` : ''}
-        </tbody>`;
+        `;
     }).join('');
 
     // Update mobile card list
