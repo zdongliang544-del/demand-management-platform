@@ -474,21 +474,11 @@
             <a id="navSchedule" onclick="switchPage('schedule')">
                 <span>📅</span> 需求排期
             </a>
-            <a id="navPerson" onclick="switchPage('person')">
-                <span>👥</span> 人员看板
-            </a>
-            <a id="navMyTasks" onclick="switchPage('mytasks')">
-                <span>📝</span> 我的任务
-            </a>
             <a id="navReports" onclick="switchPage('reports')">
                 <span>📈</span> 报告生成
             </a>
             <a id="navStats" onclick="switchPage('stats')">
                 <span>📊</span> 需求统计
-            </a>
-            <a id="navBlockReminder" onclick="switchPage('schedule')" style="position:relative;">
-                <span>🚧</span> 卡点提醒
-                <span id="blockReminderBadge" class="badge badge-p0" style="display:none;margin-left:auto;font-size:10px;">0</span>
             </a>
             <div style="padding:8px 16px;margin-top:8px;">
                 <button class="btn btn-sm" style="width:100%;background:var(--warning);color:white;font-size:11px;" onclick="batchImportDemands()">📥 导入语雀数据</button>
@@ -599,7 +589,7 @@
                             <table>
                                 <thead><tr>
                                     <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
-                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>操作</th>
+                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>结束时间</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
@@ -659,16 +649,6 @@
                         </select>
                     </div>
                     <div class="filter-item">
-                        <label>角色</label>
-                        <select id="scheduleFilterRole">
-                            <option value="">全部</option>
-                            <option value="产品">产品</option>
-                            <option value="开发">开发</option>
-                            <option value="测试">测试</option>
-                            <option value="UI">UI</option>
-                        </select>
-                    </div>
-                    <div class="filter-item">
                         <label>状态</label>
                         <select id="scheduleFilterStatus">
                             <option value="">全部</option>
@@ -705,7 +685,7 @@
                         <div class="table-wrapper">
                             <table>
                                 <thead><tr>
-                                    <th>需求编号</th><th>需求标题</th><th>类型</th><th>责任人</th><th>角色</th><th>开始时间</th><th>结束时间</th><th>进度</th><th>状态</th><th>备注</th><th>操作</th>
+                                    <th>需求编号</th><th>需求标题</th><th>类型</th><th>责任人</th><th>开始时间</th><th>结束时间</th><th>状态</th><th>备注</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="scheduleTableBody"></tbody>
                             </table>
@@ -962,8 +942,6 @@
     <div class="nav-items">
         <div class="nav-item active" onclick="switchPage('list')" data-page="list"><span class="nav-icon">📋</span><span>需求</span></div>
         <div class="nav-item" onclick="switchPage('schedule')" data-page="schedule"><span class="nav-icon">📅</span><span>排期</span></div>
-        <div class="nav-item" onclick="switchPage('person')" data-page="person"><span class="nav-icon">👥</span><span>看板</span></div>
-        <div class="nav-item" onclick="switchPage('mytasks')" data-page="mytasks"><span class="nav-icon">📝</span><span>任务</span></div>
         <div class="nav-item" onclick="switchPage('reports')" data-page="reports"><span class="nav-icon">📈</span><span>报告</span></div>
     </div>
 </div>
@@ -1446,8 +1424,6 @@ function switchPage(page) {
     setTimeout(() => {
         if (page === 'list') { document.getElementById('pageList').style.display = ''; document.getElementById('navList').classList.add('active'); renderDemandTable(); }
         else if (page === 'schedule') { document.getElementById('pageSchedule').style.display = ''; document.getElementById('navSchedule').classList.add('active'); renderScheduleTable(); }
-        else if (page === 'person') { document.getElementById('pagePerson').style.display = ''; document.getElementById('navPerson').classList.add('active'); renderPersonDashboard(); }
-        else if (page === 'mytasks') { document.getElementById('pageMyTasks').style.display = ''; document.getElementById('navMyTasks').classList.add('active'); renderMyTasks(); }
         else if (page === 'reports') { document.getElementById('pageReports').style.display = ''; document.getElementById('navReports').classList.add('active'); initReportPage(); }
         else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); drawTrendChart(); }
         else if (page === 'settings') { document.getElementById('pageSettings').style.display = ''; document.getElementById('navSettings').classList.add('active'); renderUserList(); renderDataOverview(); }
@@ -2151,6 +2127,7 @@ function parsePrdAndFill() {
     let resultHtml = '<strong>解析结果：</strong><div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:6px;">';
     let filled = 0, total = 0;
 
+    // Fill form fields based on parsed result
     function setFormField(fieldId, value, label) {
         total++;
         const el = document.getElementById(fieldId);
@@ -2165,17 +2142,21 @@ function parsePrdAndFill() {
         }
     }
 
+    // Title (max 30 chars)
     var title = result.title ? result.title.substring(0, 30) : '';
     setFormField('fieldTitle', title, '标题');
 
+    // Content
     var content = result.content || result.description || text.substring(0, 500);
     setFormField('fieldContent', content, '内容');
 
+    // Type
     var type = '';
     if (/平台/i.test(text)) type = '平台';
     else if (/业务/i.test(text)) type = '业务';
     setFormField('fieldType', type, '类型');
 
+    // Priority
     var priority = '';
     if (/P0|p0|高优|紧急|最高优/.test(text)) priority = 'P0';
     else if (/P1|p1|中优|重要/.test(text)) priority = 'P1';
@@ -2183,8 +2164,10 @@ function parsePrdAndFill() {
     else priority = 'P1';
     setFormField('fieldPriority', priority, '优先级');
 
+    // Status - default to 待确认 for PRD imports
     setFormField('fieldStatus', '待确认', '状态');
 
+    // Multi-select fields
     function setMultiSelect(containerId, values, label) {
         total++;
         if (values && values.length > 0) {
@@ -2201,6 +2184,7 @@ function parsePrdAndFill() {
     setMultiSelect('msAppliedCountry', result.countries, '已应用国家');
     setMultiSelect('msNeedCountry', result.countries, '需要应用国家');
 
+    // PM
     if (result.pms && result.pms.length > 0) {
         document.querySelectorAll('input[name="fieldPM"]').forEach(function(cb) {
             cb.checked = result.pms.indexOf(cb.value) >= 0;
@@ -2212,12 +2196,14 @@ function parsePrdAndFill() {
     }
     total++;
 
+    // Extended fields
     if (result.value) setFormField('fieldValue', result.value, '需求价值');
     if (result.proposer) setFormField('fieldProposerName', result.proposer, '提出人');
     if (result.expectDate) setFormField('fieldExpectDate', result.expectDate, '预期时间');
     if (result.capability) setFormField('fieldCapability', result.capability, '能力形式');
     if (result.docUrl) setFormField('fieldDocUrl', result.docUrl, '文档地址');
 
+    // Tags
     if (result.tags && result.tags.length > 0) {
         currentTags = result.tags.filter(function(t) { return ['紧急','客户定制','技术债务','体验优化'].indexOf(t) >= 0; });
         renderTags();
@@ -2226,6 +2212,7 @@ function parsePrdAndFill() {
     resultHtml += `</div><div style="margin-top:8px;font-weight:600;color:${filled >= total * 0.6 ? '#065f46' : '#92400e'};">识别率 ${filled}/${total}（${Math.round(filled/total*100)}%）— 请核对并补全</div>`;
     resultEl.innerHTML = resultHtml;
 
+    // Update char counters
     if (result.title) document.getElementById('titleCharCount').textContent = result.title.substring(0,30).length;
     if (result.value) document.getElementById('valueCharCount').textContent = typeof result.value === 'string' ? result.value.length : 0;
 
@@ -2235,10 +2222,12 @@ function parsePrdAndFill() {
 function parsePrdText(text) {
     var result = { title: '', content: '', description: '', platforms: [], modules: [], countries: [], pms: [], tags: [], proposer: '', value: '', capability: '', docUrl: '', expectDate: '' };
     
+    // 1. Extract title: first non-empty line after any "标题/Title" marker
     var titleMatch = text.match(/(?:标题|Title|需求名称|需求标题|项目名称)[：:]\s*(.{1,50})/i);
     if (titleMatch) {
         result.title = titleMatch[1].trim();
     } else {
+        // Take first meaningful line (skip empty lines and short lines)
         var lines = text.split('\n');
         for (var i = 0; i < lines.length; i++) {
             var line = lines[i].trim();
@@ -2249,10 +2238,12 @@ function parsePrdText(text) {
         }
     }
 
+    // 2. Extract description/content from "需求描述/背景/概述" sections
     var descMatch = text.match(/(?:需求描述|需求概述|背景|需求说明|Background|Description|概述)[：:]*\s*\n?([\s\S]{30,500}?)(?=\n\s*(?:目标|方案|优先级|国家|模块|平台|类型|PM|产品PM|预期|上线|价值|备注|#))/i);
     if (descMatch) {
         result.content = descMatch[1].trim().substring(0, 500);
     } else {
+        // Fallback: extract longest paragraph
         var paras = text.split(/\n\n+/);
         var longest = '';
         for (var j = 0; j < paras.length; j++) {
@@ -2264,41 +2255,51 @@ function parsePrdText(text) {
         result.content = longest.substring(0, 500);
     }
 
+    // 3. Countries
     COUNTRY_OPTIONS.forEach(function(c) {
         if (text.indexOf(c) >= 0) result.countries.push(c);
     });
 
+    // 4. Platforms
     if (/APP|app|App|移动端|移动/.test(text)) result.platforms.push('APP');
     if (/KILI|kili|Kili/.test(text)) result.platforms.push('KILI');
     if (/Web|web|WEB|网页|PC|后台/.test(text)) result.platforms.push('Web');
 
+    // 5. Modules
     MULTI_SELECT_OPTIONS.module.forEach(function(m) {
         if (m !== '全部' && text.indexOf(m) >= 0) result.modules.push(m);
     });
 
+    // 6. PM names
     ['朱黎','张栋良','彭程硕','李思开','孙佳俊','吕少俊'].forEach(function(pm) {
         if (text.indexOf(pm) >= 0) result.pms.push(pm);
     });
 
+    // 7. Tags
     if (/紧急|urgent|Urgent/.test(text)) result.tags.push('紧急');
     if (/客户定制|custom|customized|定制/.test(text)) result.tags.push('客户定制');
     if (/技术债务|tech debt|技术债/.test(text)) result.tags.push('技术债务');
     if (/体验优化|UX|ui优化|交互优化/.test(text)) result.tags.push('体验优化');
 
+    // 8. Proposer
     var proposerMatch = text.match(/(?:提出人|申请人|需求方)[：:]\s*(.{2,10})/);
     if (proposerMatch) result.proposer = proposerMatch[1].trim();
 
+    // 9. Value
     var valueMatch = text.match(/(?:价值|目标|收益|Goal|Value)[：:]*\s*\n?([\s\S]{5,100}?)(?=\n\s*(?:$|方案|实现|#))/i);
     if (valueMatch) result.value = valueMatch[1].trim().substring(0, 100);
 
+    // 10. Capability
     var capOptions = ['标准能力新增','标准能力迭代','基础能力迭代','基础能力复用','已有能力迭代','差异能力新增','差异能力迭代'];
     for (var k = 0; k < capOptions.length; k++) {
         if (text.indexOf(capOptions[k]) >= 0) { result.capability = capOptions[k]; break; }
     }
 
+    // 11. Doc URL
     var urlMatch = text.match(/(https?:\/\/[^\s\n]{5,200})/);
     if (urlMatch) result.docUrl = urlMatch[1];
 
+    // 12. Date
     var dateMatch = text.match(/(?:预期|期望|上线|截止|Due|Launch)[^：:]*[：:]\s*(\d{4}[-/]\d{1,2}[-/]\d{1,2})/);
     if (dateMatch) result.expectDate = dateMatch[1].replace(/\//g, '-');
 
@@ -2547,6 +2548,32 @@ async function handleDemandSubmit(e) {
         showToast('需求创建成功', 'success');
     }
     await saveDemands(demands);
+
+    // Auto-schedule: when demand enters "开发中", create/update schedule
+    if (demand.status === '开发中' && demand.pmList && demand.pmList.length > 0) {
+        const allSchedules = await getSchedules();
+        const existing = allSchedules.find(s => s.demandId === id);
+        const today = new Date().toISOString().split('T')[0];
+        const endDt = demand.expectDate || new Date(Date.now() + 30*24*3600000).toISOString().split('T')[0];
+        if (existing) {
+            if (!existing.startDate) existing.startDate = today;
+            existing.endDate = endDt;
+            existing.status = '进行中';
+            existing.owner = demand.pmList[0];
+        } else {
+            allSchedules.push({
+                id: 'SCH' + Date.now().toString(36).toUpperCase(),
+                demandId: id, owner: demand.pmList[0],
+                type: demand.type || '', startDate: today, endDate: endDt,
+                status: '进行中', isBlocked: '否', blockReason: '', blockDetail: '',
+                prdUrl: demand.docUrl || '', yunxiaoUrl: '', remark: '自动同步自需求',
+                createdAt: `${currentUser.name} | ${formatDate(new Date())}`,
+                updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
+            });
+        }
+        await saveSchedules(allSchedules);
+    }
+
     // P1-4: Clear draft after successful submission
     clearDraft(id);
     closeCreateModal();
@@ -2875,6 +2902,9 @@ async function renderDemandTable(filteredDemands, page) {
     const pageDemands = demands.slice(startIdx, endIdx);
 
     const allReviews = await getReviews();
+    const allSchedules = await getSchedules();
+    const scheduleMap = {};
+    allSchedules.forEach(function(s) { scheduleMap[s.demandId] = s.endDate; });
     tbody.innerHTML = pageDemands.map(d => {
         const contentPreview = d.content && d.content.length > 20 ? d.content.substring(0, 20) + '...' : (d.content || '-');
         const reviews = allReviews.filter(r => r.demandId === d.id);
@@ -2900,6 +2930,7 @@ async function renderDemandTable(filteredDemands, page) {
             <td>${d.capability || '-'}</td>
             <td>${(d.tags || []).map(tag => renderTagBadge(tag)).join(' ')}</td>
             <td style="font-size:10px;">${reviewerInfo}</td>
+            <td style="font-size:11px;">${scheduleMap[d.id] || '-'}</td>
             <td><div class="action-btns">
                 <button class="action-btn" title="查看" onclick="viewDemand('${d.id}')">👁</button>
                 ${isArchived ? `<button class="action-btn" title="恢复" onclick="restoreDemand('${d.id}')" style="color:var(--success);">♻️</button>` : `
@@ -2975,38 +3006,17 @@ function toggleFormSection(sectionId) {
 }
 
 // ==================== STATUS FLOW CONTROL (P0-6) ====================
-const STATUS_TRANSITIONS = {
-    '待确认': ['待评审', '已关闭', '挂起'],
-    '待评审': ['开发中', '已关闭', '挂起'],
-    '开发中': ['测试中', '挂起'],
-    '测试中': ['已发布', '挂起'],
-    '已发布': ['挂起'],
-    '已关闭': ['挂起'],
-    '挂起': [] // Special: restore to previous status
-};
+const ALL_STATUSES = ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
 
-function getValidStatusTransitions(currentStatus) {
-    if (!currentStatus) return ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
-    return STATUS_TRANSITIONS[currentStatus] || [];
-}
-
+// ==================== STATUS UPDATES (All statuses always selectable) ====================
 function updateStatusSelector(currentStatus, isEdit) {
     const select = document.getElementById('fieldStatus');
     if (!select) return;
-    const allStatuses = ['待确认', '待评审', '开发中', '测试中', '已发布', '已关闭', '挂起'];
-
-    if (isEdit && currentStatus) {
-        const validTransitions = getValidStatusTransitions(currentStatus);
-        // Include current status + valid transitions
-        const allowed = [currentStatus, ...validTransitions];
-        select.innerHTML = allowed.map(s =>
-            `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}${s === currentStatus ? ' (当前)' : ''}</option>`
-        ).join('');
-    } else {
-        // New demand - default to 待确认
-        select.innerHTML = '<option value="待确认" selected>待确认</option>' +
-            allStatuses.filter(s => s !== '待确认').map(s => `<option value="${s}">${s}</option>`).join('');
-    }
+    // Always show all statuses - no transition restrictions
+    select.innerHTML = ALL_STATUSES.map(s =>
+        `<option value="${s}" ${s === currentStatus ? 'selected' : ''}>${s}${s === currentStatus ? ' (当前)' : ''}</option>`
+    ).join('');
+    if (!currentStatus) select.value = '待确认';
 }
 
 function logStatusChange(demandId, fromStatus, toStatus, operator) {
@@ -3041,19 +3051,21 @@ async function updateBlockReminder() {
     const badge = document.getElementById('blockReminderBadge');
     const navItem = document.getElementById('navBlockReminder');
 
-    if (totalCount > 0) {
-        badge.style.display = '';
-        badge.textContent = totalCount;
-        if (severeCount > 0) {
-            badge.className = 'badge badge-p0';
-            navItem.style.background = 'rgba(220,38,38,0.15)';
+    if (badge && navItem) {
+        if (totalCount > 0) {
+            badge.style.display = '';
+            badge.textContent = totalCount;
+            if (severeCount > 0) {
+                badge.className = 'badge badge-p0';
+                navItem.style.background = 'rgba(220,38,38,0.15)';
+            } else {
+                badge.className = 'badge badge-p1';
+                navItem.style.background = 'rgba(217,119,6,0.15)';
+            }
         } else {
-            badge.className = 'badge badge-p1';
-            navItem.style.background = 'rgba(217,119,6,0.15)';
+            badge.style.display = 'none';
+            navItem.style.background = '';
         }
-    } else {
-        badge.style.display = 'none';
-        navItem.style.background = '';
     }
 
     // P0-7: Show login popup for severe blocks (>7 days)
@@ -3327,10 +3339,8 @@ async function openScheduleModal(id = null) {
             document.getElementById('editScheduleId').value = s.id;
             document.getElementById('scheduleDemandId').value = s.demandId;
             document.getElementById('scheduleOwner').value = s.owner;
-            document.getElementById('scheduleRole').value = s.role;
             document.getElementById('scheduleStartDate').value = s.startDate;
             document.getElementById('scheduleEndDate').value = s.endDate;
-            document.getElementById('scheduleProgress').value = s.progress;
             document.getElementById('scheduleStatus').value = s.status;
             document.getElementById('scheduleIsBlocked').value = s.isBlocked || '否';
             document.getElementById('scheduleBlockReason').value = s.blockReason || '';
@@ -3358,10 +3368,8 @@ function createScheduleModal() {
                     <div class="form-grid">
                         <div class="form-group full-width"><label>关联需求 <span style="color:var(--danger)">*</span></label><select id="scheduleDemandId" required></select></div>
                         <div class="form-group"><label>责任人 <span style="color:var(--danger)">*</span></label><select id="scheduleOwner" required><option value="">请选择</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option><option value="吕少俊">吕少俊</option></select></div>
-                        <div class="form-group"><label>角色 <span style="color:var(--danger)">*</span></label><select id="scheduleRole" required><option value="">请选择</option><option value="产品">产品</option><option value="开发">开发</option><option value="测试">测试</option><option value="UI">UI</option></select></div>
                         <div class="form-group"><label>开始时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleStartDate" required></div>
                         <div class="form-group"><label>结束时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleEndDate" required></div>
-                        <div class="form-group"><label>进度 (%)</label><input type="number" id="scheduleProgress" min="0" max="100" value="0"></div>
                         <div class="form-group"><label>状态</label><select id="scheduleStatus"><option value="待排期">待排期</option><option value="进行中">进行中</option><option value="已完成">已完成</option><option value="已延期">已延期</option></select></div>
                         <div class="form-group"><label>是否卡点</label><select id="scheduleIsBlocked" onchange="toggleBlockFields()"><option value="否">否</option><option value="是">是</option></select></div>
                         <div id="blockFieldsGroup" style="display:none;">
@@ -3435,10 +3443,9 @@ async function handleScheduleSubmit(e) {
         id,
         demandId: document.getElementById('scheduleDemandId').value,
         owner,
-        role: document.getElementById('scheduleRole').value,
+        type: isEdit ? (existingSchedule?.type || '') : '',
         startDate,
         endDate,
-        progress: parseInt(document.getElementById('scheduleProgress').value) || 0,
         status: document.getElementById('scheduleStatus').value,
         isBlocked: document.getElementById('scheduleIsBlocked').value,
         blockReason: document.getElementById('scheduleIsBlocked').value === '是' ? document.getElementById('scheduleBlockReason').value : '',
@@ -3504,13 +3511,12 @@ async function renderScheduleTable(filteredSchedules) {
         return `<tr class="${isBlocked ? 'row-blocked' : ''}">
             <td style="font-family:monospace;font-size:11px;">${s.demandId}</td>
             <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(demandTitle)}">${escapeHtml(demandTitle)}</td>
-            <td>${s.role}</td>
+            <td>${s.type || '-'}</td>
             <td>${s.owner}</td>
             <td>${s.startDate || '-'}</td>
             <td>${s.endDate || '-'}</td>
-            <td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:6px;background:var(--gray-200);border-radius:3px;"><div style="width:${s.progress}%;height:100%;background:${progressColor};border-radius:3px;"></div></div><span style="font-size:11px;">${s.progress}%</span></div></td>
             <td>${isBlocked ? `<span class="badge badge-blocked" title="${escapeHtml(s.blockReason || '')}: ${escapeHtml(s.blockDetail || '')}">🚧 卡点</span>` : `<span class="badge ${s.status === '已完成' ? 'badge-released' : s.status === '已延期' ? 'badge-p0' : s.status === '进行中' ? 'badge-dev' : 'badge-pending'}">${s.status}</span>`}</td>
-            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.remark || '')}">${isBlocked ? `<span class="${blockTimeClass}" title="卡点${blockDays}天">${s.blockReason || '卡点'}${blockDays > 3 ? ` (${blockDays}天)` : ''}</span>` : escapeHtml(s.remark || '-')}</td>
+            <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(s.remark || '')}">${isBlocked ? `<span class="${blockTimeClass}">${s.blockReason || '卡点'}${blockDays > 3 ? ` (${blockDays}天)` : ''}</span>` : escapeHtml(s.remark || '-')}</td>
             <td><div class="action-btns">
                 <button class="action-btn edit" title="编辑" onclick="openScheduleModal('${s.id}')">✏️</button>
                 <button class="action-btn delete" title="删除" onclick="deleteSchedule('${s.id}')">🗑️</button>
@@ -3523,14 +3529,13 @@ async function applyScheduleFilter() {
     let schedules = await getSchedules();
     const f = id => document.getElementById(id).value;
     if (f('scheduleFilterOwner')) schedules = schedules.filter(s => s.owner === f('scheduleFilterOwner'));
-    if (f('scheduleFilterRole')) schedules = schedules.filter(s => s.role === f('scheduleFilterRole'));
     if (f('scheduleFilterStatus')) schedules = schedules.filter(s => s.status === f('scheduleFilterStatus'));
     await renderScheduleTable(schedules);
     showToast(`筛选结果：${schedules.length} 条排期`, 'info');
 }
 
 async function resetScheduleFilter() {
-    ['scheduleFilterOwner', 'scheduleFilterRole', 'scheduleFilterStatus'].forEach(id => document.getElementById(id).value = '');
+    ['scheduleFilterOwner', 'scheduleFilterStatus'].forEach(id => document.getElementById(id).value = '');
     await renderScheduleTable();
 }
 
@@ -4611,6 +4616,36 @@ async function batchChangeStatus() {
     });
 
     await saveDemands(demands);
+
+    // Auto-schedule for batch status change to 开发中
+    if (targetStatus === '开发中') {
+        const allSchedules = await getSchedules();
+        const today = new Date().toISOString().split('T')[0];
+        demands.forEach(d => {
+            if (selectedDemandIds.has(d.id) && d.pmList && d.pmList.length > 0) {
+                const existing = allSchedules.find(s => s.demandId === d.id);
+                const endDt = d.expectDate || new Date(Date.now() + 30*24*3600000).toISOString().split('T')[0];
+                if (existing) {
+                    if (!existing.startDate) existing.startDate = today;
+                    existing.endDate = endDt;
+                    existing.status = '进行中';
+                    existing.owner = d.pmList[0];
+                } else {
+                    allSchedules.push({
+                        id: 'SCH' + Date.now().toString(36).toUpperCase() + d.id.substring(0,4),
+                        demandId: d.id, owner: d.pmList[0],
+                        type: d.type || '', startDate: today, endDate: endDt,
+                        status: '进行中', isBlocked: '否', blockReason: '', blockDetail: '',
+                        prdUrl: d.docUrl || '', remark: '批量同步自需求',
+                        createdAt: `${currentUser.name} | ${formatDate(new Date())}`,
+                        updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
+                    });
+                }
+            }
+        });
+        await saveSchedules(allSchedules);
+    }
+
     closeBatchStatusModal();
     clearBatchSelection();
     showToast(`已将 ${changed} 条需求状态修改为"${targetStatus}"`, 'success');
