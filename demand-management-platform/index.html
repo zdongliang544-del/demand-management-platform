@@ -311,6 +311,8 @@
         .batch-bar .btn-batch-cancel:hover { background: rgba(255,255,255,0.1); }
         .row-checkbox { width: 30px; text-align: center; }
         .row-checkbox input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
+        .expand-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; cursor: pointer; user-select: none; }
+        .expand-arrow.open { transform: rotate(90deg); }
         #batchStatusModal .modal, #batchPmModal .modal { width: 400px; }
 
         /* P1-2: Global search */
@@ -583,7 +585,7 @@
                             <table>
                                 <thead><tr>
                                     <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
-                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>提出国家</th><th>需要应用国家</th><th>业务预期时间</th><th>上线时间</th><th>审查</th><th>登记信息</th><th>能力形式</th><th>审查人</th><th>操作</th>
+                                    <th></th><th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>提出国家</th><th>需要应用国家</th><th>业务预期时间</th><th>上线时间</th><th>审查</th><th>登记信息</th><th>能力形式</th><th>审查人</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
@@ -2411,6 +2413,19 @@ function handleNeedReviewChange() {
     document.getElementById('reviewSectionInForm').style.display = document.getElementById('fieldNeedReview').value === '是' ? '' : 'none';
 }
 
+function toggleReviewSub(demandId) {
+    const sub = document.getElementById('reviewSub_' + demandId);
+    const arrow = document.getElementById('arrow_' + demandId);
+    if (!sub || !arrow) return;
+    if (sub.style.display === 'none' || !sub.style.display) {
+        sub.style.display = '';
+        arrow.classList.add('open');
+    } else {
+        sub.style.display = 'none';
+        arrow.classList.remove('open');
+    }
+}
+
 async function handleDemandSubmit(e) {
     e.preventDefault();
     // 验证多选字段
@@ -2830,10 +2845,15 @@ async function renderDemandTable(filteredDemands, page) {
         const isChecked = selectedDemandIds.has(d.id);
         const isArchived = d.status === '已关闭';
         const rowStyle = isArchived ? 'background:var(--gray-50);opacity:0.7;' : '';
-        const displayExpect = d.expectDate || '-';
-        const displayLaunch = d.launchDate || '-';
-        return `<tr style="${rowStyle}">
+        const hasReview = d.needReview === '是';
+        const reviewContent = reviews.length > 0 ? reviews[reviews.length-1].content : '';
+        const reviewAuthor = reviews.length > 0 ? reviews[reviews.length-1].author : '';
+        const reviewDate = reviews.length > 0 ? reviews[reviews.length-1].date.split(' ')[0] : '';
+        return `<tbody>${hasReview ? `<tr style="${rowStyle}">
             <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
+            <td style="width:24px;"><span class="expand-arrow" onclick="toggleReviewSub('${d.id}')" id="arrow_${d.id}">▶</span></td>` : `<tr style="${rowStyle}">
+            <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
+            <td></td>`}
             <td style="font-family:monospace;font-size:11px;">${d.id}</td>
             <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.title)}">${escapeHtml(d.title)}</td>
             <td class="content-preview" title="${escapeHtml(d.content || '')}">${escapeHtml(contentPreview)}</td>
@@ -2847,7 +2867,7 @@ async function renderDemandTable(filteredDemands, page) {
             <td>${d.needCountry || '-'}</td>
             <td style="font-size:11px;">${displayExpect}</td>
             <td style="font-size:11px;">${displayLaunch}</td>
-            <td style="text-align:center;font-size:12px;">${d.needReview === '是' ? '✅' : '-'}</td>
+            <td style="text-align:center;font-size:12px;">${hasReview ? '✅' : '-'}</td>
             <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.登记信息 || '')}">${escapeHtml(d.登记信息 || '-')}</td>
             <td>${d.capability || '-'}</td>
             <td style="font-size:10px;">${reviewerInfo}</td>
@@ -2857,7 +2877,20 @@ async function renderDemandTable(filteredDemands, page) {
                 <button class="action-btn edit" title="编辑" onclick="editDemand('${d.id}')">✏️</button>
                 ${canDelete ? `<button class="action-btn delete" title="删除" onclick="deleteDemand('${d.id}')">🗑️</button>` : ''}`}
             </div></td>
-        </tr>`;
+        </tr>
+        ${hasReview ? `<tr class="review-sub-row" id="reviewSub_${d.id}" style="display:none;">
+            <td colspan="2"></td>
+            <td colspan="17" style="padding:8px 16px;background:${reviewContent ? '#f0fdf4' : '#fef3c7'};border-bottom:2px solid var(--primary);font-size:12px;">
+                <div style="display:flex;align-items:flex-start;gap:16px;">
+                    <span style="color:var(--gray-500);white-space:nowrap;">💬 审查信息</span>
+                    <div style="flex:1;">
+                        ${reviewContent ? `<div style="margin-bottom:4px;">${escapeHtml(reviewContent)}</div><div style="color:var(--gray-400);font-size:11px;">— ${reviewAuthor} · ${reviewDate}</div>` : `<span style="color:#92400e;">⚠️ 待补充审查信息</span>`}
+                    </div>
+                    <button class="btn btn-sm btn-secondary" onclick="openReviewModal('${d.id}')" style="font-size:11px;white-space:nowrap;">${reviewContent ? '编辑审查' : '补充审查'}</button>
+                </div>
+            </td>
+        </tr>` : ''}
+        </tbody>`;
     }).join('');
 
     // Update mobile card list
@@ -3136,7 +3169,7 @@ async function updateStats() {
 
     // Country breakdown
     const countryData = {};
-    demands.forEach(d => { (d.appliedCountryList || [d.appliedCountry]).forEach(c => { if (c && c !== '无' && c !== '全部') countryData[c] = (countryData[c] || 0) + 1; }); });
+    demands.forEach(d => { const c = d.proposerCountry; if (c && c !== '无' && c !== '全部' && c !== '') countryData[c] = (countryData[c] || 0) + 1; });
     document.getElementById('countryBreakdown').innerHTML = renderChartBar(countryData, { '巴基斯坦':'#4f46e5', '孟加拉':'#10b981', '乌干达':'#f59e0b', '尼日利亚':'#ef4444', '坦桑尼亚':'#06b6d4', '菲律宾':'#8b5cf6', '布基纳法索':'#ec4899' });
 
     // Release list
@@ -4290,9 +4323,8 @@ async function generateCustomReport() {
     demands.forEach(d => {
         stats.byStatus[d.status] = (stats.byStatus[d.status] || 0) + 1;
         if (stats.byPriority[d.priority] !== undefined) stats.byPriority[d.priority]++;
-        (d.appliedCountryList || [d.appliedCountry]).forEach(c => {
-            if (c && c !== '无') stats.byCountry[c] = (stats.byCountry[c] || 0) + 1;
-        });
+        const c = d.proposerCountry;
+        if (c && c !== '无' && c !== '全部' && c !== '') stats.byCountry[c] = (stats.byCountry[c] || 0) + 1;
         (d.pmList || []).forEach(p => {
             stats.byPm[p] = (stats.byPm[p] || 0) + 1;
         });
