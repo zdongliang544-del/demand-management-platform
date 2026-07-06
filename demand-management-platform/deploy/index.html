@@ -311,6 +311,9 @@
         .batch-bar .btn-batch-cancel:hover { background: rgba(255,255,255,0.1); }
         .row-checkbox { width: 30px; text-align: center; }
         .row-checkbox input { cursor: pointer; width: 16px; height: 16px; accent-color: var(--primary); }
+        .expand-arrow { display: inline-block; transition: transform 0.2s; font-size: 10px; }
+        .expand-arrow.open { transform: rotate(90deg); }
+        .schedule-sub-row td { padding: 6px 16px !important; }
         #batchStatusModal .modal, #batchPmModal .modal { width: 400px; }
 
         /* P1-2: Global search */
@@ -586,7 +589,7 @@
                             <table>
                                 <thead><tr>
                                     <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
-                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>结束时间</th><th>操作</th>
+                                    <th>编号</th><th></th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>已应用国家</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>上线时间</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
@@ -682,7 +685,7 @@
                         <div class="table-wrapper">
                             <table>
                                 <thead><tr>
-                                    <th>需求编号</th><th>需求标题</th><th>类型</th><th>责任人</th><th>开始时间</th><th>结束时间</th><th>状态</th><th>备注</th><th>操作</th>
+                                    <th>需求编号</th><th>需求标题</th><th>类型</th><th>责任人</th><th>开始时间</th><th>上线时间</th><th>状态</th><th>备注</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="scheduleTableBody"></tbody>
                             </table>
@@ -2854,18 +2857,23 @@ async function renderDemandTable(filteredDemands, page) {
     const allReviews = await getReviews();
     const allSchedules = await getSchedules();
     const scheduleMap = {};
-    allSchedules.forEach(function(s) { scheduleMap[s.demandId] = s.endDate; });
+    allSchedules.forEach(function(s) { scheduleMap[s.demandId] = s; });
     tbody.innerHTML = pageDemands.map(d => {
         const contentPreview = d.content && d.content.length > 20 ? d.content.substring(0, 20) + '...' : (d.content || '-');
         const reviews = allReviews.filter(r => r.demandId === d.id);
         const reviewerInfo = reviews.length > 0 ? `${reviews[reviews.length-1].author} ${reviews[reviews.length-1].date.split(' ')[0]}` : '-';
         const canDelete = d.status === '待确认';
         const isChecked = selectedDemandIds.has(d.id);
-        // P2-8: Archived demand styling
         const isArchived = d.status === '已关闭';
+        const hasSchedule = d.status === '开发中' || d.status === '测试中';
         const rowStyle = isArchived ? 'background:var(--gray-50);opacity:0.7;' : '';
-        return `<tr style="${rowStyle}">
+        const sch = scheduleMap[d.id];
+        const launchDate = sch ? sch.endDate : '-'; // 上线时间
+        const startDate = sch ? sch.startDate : '';
+        return `<tbody class="demand-tbody" data-id="${d.id}">
+        <tr style="${rowStyle}">
             <td class="row-checkbox"><input type="checkbox" class="demand-row-cb" data-id="${d.id}" ${isChecked ? 'checked' : ''} onchange="toggleDemandSelection('${d.id}', this.checked)"></td>
+            <td style="width:24px;">${hasSchedule ? `<span class="expand-arrow" onclick="toggleScheduleSub('${d.id}')" id="arrow_${d.id}" style="cursor:pointer;user-select:none;">▶</span>` : ''}</td>
             <td style="font-family:monospace;font-size:11px;">${d.id}</td>
             <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.title)}">${escapeHtml(d.title)}</td>
             <td class="content-preview" title="${escapeHtml(d.content || '')}">${escapeHtml(contentPreview)}</td>
@@ -2880,15 +2888,27 @@ async function renderDemandTable(filteredDemands, page) {
             <td>${d.capability || '-'}</td>
             <td>${(d.tags || []).map(tag => renderTagBadge(tag)).join(' ')}</td>
             <td style="font-size:10px;">${reviewerInfo}</td>
-            <td style="font-size:11px;">${scheduleMap[d.id] || '-'}</td>
+            <td style="font-size:11px;font-weight:600;${launchDate !== '-' ? 'color:var(--primary);' : ''}">${launchDate}</td>
             <td><div class="action-btns">
                 <button class="action-btn" title="查看" onclick="viewDemand('${d.id}')">👁</button>
                 ${isArchived ? `<button class="action-btn" title="恢复" onclick="restoreDemand('${d.id}')" style="color:var(--success);">♻️</button>` : `
                 <button class="action-btn edit" title="编辑" onclick="editDemand('${d.id}')">✏️</button>
-                <button class="action-btn review" title="审查" onclick="openReviewModal('${d.id}')">💬</button>
                 ${canDelete ? `<button class="action-btn delete" title="删除" onclick="deleteDemand('${d.id}')">🗑️</button>` : ''}`}
             </div></td>
-        </tr>`;
+        </tr>
+        ${hasSchedule ? `<tr class="schedule-sub-row" id="sub_${d.id}" style="display:none;">
+            <td colspan="17" style="padding:8px 16px;background:#f0fdf4;border-bottom:2px solid var(--primary);">
+                <div style="display:flex;align-items:center;gap:16px;font-size:13px;">
+                    <span style="color:var(--gray-500);">📅 排期信息</span>
+                    <label style="color:var(--gray-500);font-size:12px;">开始：</label>
+                    <input type="date" id="subStart_${d.id}" value="${startDate}" style="border:1px solid #d1d5db;border-radius:4px;padding:3px 8px;font-size:12px;">
+                    <label style="color:var(--gray-500);font-size:12px;">上线：</label>
+                    <input type="date" id="subEnd_${d.id}" value="${launchDate !== '-' ? launchDate : ''}" style="border:1px solid #d1d5db;border-radius:4px;padding:3px 8px;font-size:12px;">
+                    <button class="btn btn-primary btn-sm" onclick="saveScheduleInline('${d.id}')" style="font-size:11px;padding:4px 12px;">💾 保存</button>
+                </div>
+            </td>
+        </tr>` : ''}
+        </tbody>`;
     }).join('');
 
     // Update mobile card list
@@ -3319,7 +3339,7 @@ function createScheduleModal() {
                         <div class="form-group full-width"><label>关联需求 <span style="color:var(--danger)">*</span></label><select id="scheduleDemandId" required></select></div>
                         <div class="form-group"><label>责任人 <span style="color:var(--danger)">*</span></label><select id="scheduleOwner" required><option value="">请选择</option><option value="朱黎">朱黎</option><option value="张栋良">张栋良</option><option value="彭程硕">彭程硕</option><option value="李思开">李思开</option><option value="孙佳俊">孙佳俊</option><option value="吕少俊">吕少俊</option></select></div>
                         <div class="form-group"><label>开始时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleStartDate" required></div>
-                        <div class="form-group"><label>结束时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleEndDate" required></div>
+                        <div class="form-group"><label>上线时间 <span style="color:var(--danger)">*</span></label><input type="date" id="scheduleEndDate" required></div>
                         <div class="form-group"><label>状态</label><select id="scheduleStatus"><option value="待排期">待排期</option><option value="进行中">进行中</option><option value="已完成">已完成</option><option value="已延期">已延期</option></select></div>
                         <div class="form-group"><label>是否卡点</label><select id="scheduleIsBlocked" onchange="toggleBlockFields()"><option value="否">否</option><option value="是">是</option></select></div>
                         <div id="blockFieldsGroup" style="display:none;">
@@ -3431,6 +3451,57 @@ async function deleteSchedule(id) {
     await saveSchedules(schedules);
     showToast('排期已删除', 'success');
     await renderScheduleTable();
+}
+
+// ==================== INLINE SCHEDULE EDIT (Demand List Integration) ====================
+function toggleScheduleSub(demandId) {
+    const sub = document.getElementById('sub_' + demandId);
+    const arrow = document.getElementById('arrow_' + demandId);
+    if (!sub || !arrow) return;
+    if (sub.style.display === 'none' || !sub.style.display) {
+        sub.style.display = '';
+        arrow.classList.add('open');
+    } else {
+        sub.style.display = 'none';
+        arrow.classList.remove('open');
+    }
+}
+
+async function saveScheduleInline(demandId) {
+    const startDate = document.getElementById('subStart_' + demandId).value;
+    const endDate = document.getElementById('subEnd_' + demandId).value;
+    if (!startDate && !endDate) { showToast('请至少填写一个日期', 'error'); return; }
+
+    const demands = await getDemands();
+    const demand = demands.find(d => d.id === demandId);
+    if (!demand) return;
+
+    const allSchedules = await getSchedules();
+    let schedule = allSchedules.find(s => s.demandId === demandId);
+
+    if (schedule) {
+        if (startDate) schedule.startDate = startDate;
+        if (endDate) schedule.endDate = endDate;
+        schedule.updatedAt = `${currentUser.name} | ${formatDate(new Date())}`;
+    } else {
+        schedule = {
+            id: 'SCH' + Date.now().toString(36).toUpperCase(),
+            demandId: demandId,
+            owner: demand.pmList ? demand.pmList[0] : currentUser.name,
+            type: demand.type || '',
+            startDate: startDate,
+            endDate: endDate,
+            status: '进行中',
+            isBlocked: '否', blockReason: '', blockDetail: '',
+            remark: '需求列表内联编辑',
+            createdAt: `${currentUser.name} | ${formatDate(new Date())}`,
+            updatedAt: `${currentUser.name} | ${formatDate(new Date())}`
+        };
+        allSchedules.push(schedule);
+    }
+    await saveSchedules(allSchedules);
+    showToast('排期已保存', 'success');
+    await renderDemandTable();
 }
 
 async function renderScheduleTable(filteredSchedules) {
