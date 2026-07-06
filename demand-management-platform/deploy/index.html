@@ -583,7 +583,7 @@
                             <table>
                                 <thead><tr>
                                     <th class="row-checkbox"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)" title="全选/取消全选"></th>
-                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>提出国家</th><th>需要应用国家</th><th>业务预期时间</th><th>上线时间</th><th>登记信息</th><th>能力形式</th><th>标签</th><th>审查人</th><th>操作</th>
+                                    <th>编号</th><th>标题</th><th>需求内容</th><th>类型</th><th>端</th><th>关联模块</th><th>优先级</th><th>状态</th><th>产品PM</th><th>提出国家</th><th>需要应用国家</th><th>业务预期时间</th><th>上线时间</th><th>审查</th><th>登记信息</th><th>能力形式</th><th>审查人</th><th>操作</th>
                                 </tr></thead>
                                 <tbody id="demandTableBody"></tbody>
                             </table>
@@ -2848,9 +2848,9 @@ async function renderDemandTable(filteredDemands, page) {
             <td>${d.needCountry || '-'}</td>
             <td style="font-size:11px;">${displayExpect}</td>
             <td style="font-size:11px;">${displayLaunch}</td>
+            <td style="text-align:center;font-size:12px;">${d.needReview === '是' ? '✅' : '-'}</td>
             <td style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHtml(d.登记信息 || '')}">${escapeHtml(d.登记信息 || '-')}</td>
             <td>${d.capability || '-'}</td>
-            <td>${(d.tags || []).map(tag => renderTagBadge(tag)).join(' ')}</td>
             <td style="font-size:10px;">${reviewerInfo}</td>
             <td><div class="action-btns">
                 <button class="action-btn" title="查看" onclick="viewDemand('${d.id}')">👁</button>
