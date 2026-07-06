@@ -2454,8 +2454,7 @@ async function handleDemandSubmit(e) {
         remark: document.getElementById('fieldRemark').value.trim(),
         pmList: Array.from(pmChecked).map(cb => cb.value),
         capability: document.getElementById('fieldCapability').value,
-        // P1-12: P0需求强制要求评审
-        needReview: document.getElementById('fieldPriority').value === 'P0' ? '是' : document.getElementById('fieldNeedReview').value,
+        needReview: document.getElementById('fieldNeedReview').value,
         // P2-4: 需求标签
         tags: getTagsFromForm(),
         updatedAt: `${currentUser.name} | ${formatDate(new Date())}`,
