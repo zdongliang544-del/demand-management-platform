@@ -937,6 +937,21 @@
                         </div>
                     </div>
                 </div>
+                <!-- 数据管理 -->
+                <div class="card" style="margin-top:20px;border:1px solid #fca5a5;">
+                    <div class="card-header" style="background:#fef2f2;"><h3 style="color:#dc2626;">🗑️ 数据管理</h3></div>
+                    <div class="card-body">
+                        <div style="background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#9a3412;">
+                            <strong>⚠️ 危险操作</strong>
+                            清空后所有需求、评审、排期、评论、通知等数据将永久删除，无法恢复。登录账号不受影响。
+                        </div>
+                        <table class="data-table" id="dataOverviewTable" style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+                            <thead><tr><th style="text-align:left;padding:8px;border-bottom:1px solid var(--gray-200);font-size:12px;color:var(--gray-500);">数据类型</th><th style="text-align:right;padding:8px;border-bottom:1px solid var(--gray-200);font-size:12px;color:var(--gray-500);">记录数</th></tr></thead>
+                            <tbody id="dataOverviewBody"></tbody>
+                        </table>
+                        <button class="btn btn-danger" style="width:100%;" id="btnClearAllData" onclick="handleClearAllData()">🗑️ 清空全部业务数据</button>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -1400,7 +1415,7 @@ function switchPage(page) {
         else if (page === 'mytasks') { document.getElementById('pageMyTasks').style.display = ''; document.getElementById('navMyTasks').classList.add('active'); renderMyTasks(); }
         else if (page === 'reports') { document.getElementById('pageReports').style.display = ''; document.getElementById('navReports').classList.add('active'); initReportPage(); }
         else if (page === 'stats') { document.getElementById('pageStats').style.display = ''; document.getElementById('navStats').classList.add('active'); updateStats(); drawTrendChart(); }
-        else if (page === 'settings') { document.getElementById('pageSettings').style.display = ''; document.getElementById('navSettings').classList.add('active'); renderUserList(); }
+        else if (page === 'settings') { document.getElementById('pageSettings').style.display = ''; document.getElementById('navSettings').classList.add('active'); renderUserList(); renderDataOverview(); }
         hideLoading();
     }, 300);
 }
@@ -1420,7 +1435,12 @@ async function initCloudBase() {
             const initPromise = (async () => {
                 cloudbaseApp = cloudbase.init({ env: TENCENT_CLOUD_CONFIG.cloudbase.envId });
                 const auth = cloudbaseApp.auth();
-                await auth.anonymousSignIn();
+                // CloudBase V2 SDK compatibility
+                if (typeof auth.signInAnonymously === 'function') {
+                    await auth.signInAnonymously();
+                } else {
+                    await auth.anonymousSignIn();
+                }
                 cloudbaseDb = cloudbaseApp.database();
                 return true;
             })();
@@ -1838,6 +1858,65 @@ async function handleChangePassword(e) {
     }, 2000);
 
     return false;
+}
+
+// ==================== DATA MANAGEMENT (Clear All Data) ====================
+function renderDataOverview() {
+    var tbody = document.getElementById('dataOverviewBody');
+    if (!tbody) return;
+    var dataKeys = [
+        { key: STORAGE_KEY_DEMANDS, name: '需求' },
+        { key: STORAGE_KEY_REVIEWS, name: '评审' },
+        { key: STORAGE_KEY_SCHEDULE, name: '排期' },
+        { key: STORAGE_KEY_COMMENTS, name: '评论' },
+        { key: STORAGE_KEY_NOTIFICATIONS, name: '通知' },
+        { key: STORAGE_KEY_STATUS_LOG, name: '状态日志' },
+        { key: STORAGE_KEY_TEMPLATES, name: '需求模板' }
+    ];
+    var total = 0;
+    var draftCount = Object.keys(localStorage).filter(function(k){ return k.indexOf('demand_draft_') === 0; }).length;
+    var html = '';
+    for (var i = 0; i < dataKeys.length; i++) {
+        var raw = localStorage.getItem(dataKeys[i].key);
+        var count = 0;
+        if (raw) { try { var arr = JSON.parse(raw); count = Array.isArray(arr) ? arr.length : 1; } catch(ex) { count = 1; } }
+        total += count;
+        html += '<tr><td style="padding:8px;border-bottom:1px solid var(--gray-100);">' + dataKeys[i].name + '</td><td style="padding:8px;text-align:right;border-bottom:1px solid var(--gray-100);font-weight:700;">' + count + '</td></tr>';
+    }
+    if (draftCount > 0) {
+        total += draftCount;
+        html += '<tr><td style="padding:8px;border-bottom:1px solid var(--gray-100);">表单草稿</td><td style="padding:8px;text-align:right;border-bottom:1px solid var(--gray-100);font-weight:700;">' + draftCount + '</td></tr>';
+    }
+    html += '<tr style="background:var(--gray-50);font-weight:700;"><td style="padding:8px;">合计</td><td style="padding:8px;text-align:right;">' + total + '</td></tr>';
+    tbody.innerHTML = html;
+    var btn = document.getElementById('btnClearAllData');
+    if (btn) btn.disabled = (total === 0);
+}
+
+function handleClearAllData() {
+    if (!confirm('确认清空全部业务数据？\n\n此操作将永久删除所有需求、评审、排期、评论、通知等数据，无法恢复！\n登录账号不受影响。')) return;
+    if (!confirm('二次确认：真的要清空全部数据吗？\n\n这是最后一次确认，点击「确定」后将立即执行。')) return;
+
+    var keysToRemove = [
+        STORAGE_KEY_DEMANDS, STORAGE_KEY_REVIEWS, STORAGE_KEY_SCHEDULE,
+        STORAGE_KEY_COMMENTS, STORAGE_KEY_NOTIFICATIONS, STORAGE_KEY_STATUS_LOG,
+        STORAGE_KEY_TEMPLATES
+    ];
+    for (var i = 0; i < keysToRemove.length; i++) {
+        localStorage.removeItem(keysToRemove[i]);
+    }
+    Object.keys(localStorage).filter(function(k){ return k.indexOf('demand_draft_') === 0; }).forEach(function(k){ localStorage.removeItem(k); });
+
+    // Also try to clear CloudBase data if connected
+    if (cloudbaseDb) {
+        var collections = ['demands', 'reviews', 'schedules', 'comments', 'notifications'];
+        collections.forEach(function(col) {
+            try { cloudbaseDb.collection(col).remove(); } catch(e) {}
+        });
+    }
+
+    showToast('全部业务数据已清空', 'success');
+    setTimeout(function(){ location.reload(); }, 1500);
 }
 
 // ==================== P2-3: DEMAND TEMPLATES ====================
@@ -4214,30 +4293,55 @@ async function batchDelete() {
     if (selectedDemandIds.size === 0) return;
     const demands = await getDemands();
     const selected = demands.filter(d => selectedDemandIds.has(d.id));
-    const deletable = selected.filter(d => d.status === '待确认');
-    const nonDeletable = selected.filter(d => d.status !== '待确认');
+    if (selected.length === 0) { showToast('未找到选中的需求', 'error'); return; }
 
-    if (deletable.length === 0) {
-        showToast('选中的需求中没有"待确认"状态的，无法删除', 'error');
-        return;
+    // Categorize by risk level
+    const safe = selected.filter(d => d.status === '待确认' || d.status === '已关闭');
+    const risky = selected.filter(d => d.status !== '待确认' && d.status !== '已关闭');
+
+    // Build confirmation message
+    let lines = [`共选中 ${selected.length} 条需求：`];
+    if (safe.length > 0) lines.push(`  · 待确认/已关闭：${safe.length} 条（可直接删除）`);
+    if (risky.length > 0) {
+        const riskyStatuses = [...new Set(risky.map(d => d.status))].join('、');
+        lines.push(`  · ${riskyStatuses} 状态：${risky.length} 条（⚠️ 高风险）`);
+    }
+    lines.push('', '确认删除以上全部需求？此操作不可恢复！');
+
+    if (!confirm(lines.join('\n'))) return;
+
+    // Extra confirmation for risky deletions
+    if (risky.length > 0) {
+        const riskyNames = risky.map(d => `"${d.title}" (${d.status})`).join('\n');
+        if (!confirm(`以下 ${risky.length} 条非待确认/已关闭状态的需求将被删除：\n\n${riskyNames}\n\n最终确认删除？`)) return;
     }
 
-    let msg = `确定删除 ${deletable.length} 条"待确认"状态的需求吗？\n\n⚠️ 此操作不可恢复！`;
-    if (nonDeletable.length > 0) msg += `\n\n（另有 ${nonDeletable.length} 条非"待确认"状态的需求将被跳过）`;
-    if (!confirm(msg)) return;
-
-    const deleteIds = new Set(deletable.map(d => d.id));
+    const deleteIds = new Set(selected.map(d => d.id));
     let remaining = demands.filter(d => !deleteIds.has(d.id));
     await saveDemands(remaining);
 
-    // Also delete related reviews
+    // Also delete related reviews and comments
     let allReviews = await getReviews();
     allReviews = allReviews.filter(r => !deleteIds.has(r.demandId));
     await saveReviews(allReviews);
 
+    let allComments = await getComments();
+    allComments = allComments.filter(c => !deleteIds.has(c.demandId));
+    localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(allComments));
+
+    // Also clean schedules
+    let allSchedules = getSchedules();
+    allSchedules = allSchedules.filter(s => !deleteIds.has(s.demandId));
+    localStorage.setItem(STORAGE_KEY_SCHEDULE, JSON.stringify(allSchedules));
+
+    // Clean status logs
+    let allLogs = JSON.parse(localStorage.getItem(STORAGE_KEY_STATUS_LOG) || '[]');
+    allLogs = allLogs.filter(l => !deleteIds.has(l.demandId));
+    localStorage.setItem(STORAGE_KEY_STATUS_LOG, JSON.stringify(allLogs));
+
     selectedDemandIds.clear();
     updateBatchBar();
-    showToast(`已删除 ${deletable.length} 条需求`, 'success');
+    showToast(`已删除 ${selected.length} 条需求（含关联评审/评论/排期/日志）`, 'success');
     await renderDemandTable();
 }
 

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据清空工具 - 需求管理平台</title>
+<script src="https://static.cloudbase.net/cloudbase-js-sdk/latest/cloudbase.full.js"></script>
+<style>
+:root {
+    --primary: #4f46e5; --danger: #dc2626; --success: #059669;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-700: #374151;
+    --gray-800: #1f2937; --gray-900: #111827;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif; background:var(--gray-50); color:var(--gray-800); font-size:14px; line-height:1.6; min-height:100vh; }
+.container { max-width:680px; margin:0 auto; padding:40px 20px; }
+.header { text-align:center; margin-bottom:32px; }
+.header h1 { font-size:24px; font-weight:700; color:var(--gray-900); }
+.header p { color:var(--gray-500); margin-top:8px; }
+.section { background:white; border-radius:12px; padding:20px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+.section h2 { font-size:16px; font-weight:600; margin-bottom:16px; color:var(--gray-900); }
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th,.data-table td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--gray-200); font-size:13px; }
+.data-table th { font-weight:600; color:var(--gray-500); font-size:12px; text-transform:uppercase; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; padding:10px 20px; border-radius:8px; font-weight:600; font-size:14px; cursor:pointer; border:none; transition:all 0.2s; }
+.btn:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-primary { background:var(--primary); color:white; }
+.btn-primary:hover:not(:disabled) { background:#4338ca; }
+.btn-danger { background:var(--danger); color:white; }
+.btn-danger:hover:not(:disabled) { background:#b91c1c; }
+.btn-secondary { background:white; color:var(--gray-700); border:1px solid var(--gray-300); }
+.btn-row { display:flex; gap:12px; margin-top:16px; }
+.warning-box { background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#92400e; }
+.warning-box strong { display:block; margin-bottom:4px; }
+.info-box { background:#e0f2fe; border:1px solid #0284c7; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#075985; }
+.status-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+.status-badge.on { background:#d1fae5; color:#065f46; }
+.status-badge.off { background:#fee2e2; color:#991b1b; }
+.result { margin-top:16px; padding:12px 16px; border-radius:8px; display:none; font-weight:600; font-size:14px; }
+.result.show { display:block; }
+.result.success { background:#d1fae5; color:#065f46; }
+.result.error { background:#fee2e2; color:#991b1b; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>数据清空工具</h1>
+        <p>清空需求管理平台的本地数据</p>
+    </div>
+
+    <div class="warning-box">
+        <strong>此操作不可逆！</strong>
+        清空后所有需求、评审、排期、评论、通知等数据将永久删除。登录账号信息保留。
+    </div>
+
+    <div class="section">
+        <h2>CloudBase 状态</h2>
+        <table class="data-table">
+            <tr><td style="width:160px">云端同步</td><td><span id="cbStatus" class="status-badge off">未连接</span></td></tr>
+            <tr><td>原因</td><td id="cbReason" style="font-size:12px;color:var(--gray-500)">正在检测...</td></tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>本地数据概览</h2>
+        <table class="data-table" id="localDataTable">
+            <thead><tr><th>数据类型</th><th>存储键</th><th>记录数</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>操作</h2>
+        <div class="btn-row">
+            <button class="btn btn-primary" onclick="location.reload()">刷新状态</button>
+            <button class="btn btn-danger" id="btnClear" onclick="clearAll()">清空全部数据</button>
+        </div>
+        <div class="result" id="result"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:24px;">
+        <a href="/" style="color:var(--gray-500);text-decoration:none;font-size:13px;">返回平台</a>
+    </div>
+</div>
+
+<script>
+const CLOUDBASE_ENV_ID = 'cloud1-5g3f30lo8cd2237e';
+
+const DATA_KEYS = [
+    { key: 'demand_mgmt_demands', name: '需求数据' },
+    { key: 'demand_mgmt_reviews', name: '评审记录' },
+    { key: 'demand_mgmt_schedule', name: '排期数据' },
+    { key: 'demand_mgmt_comments', name: '评论数据' },
+    { key: 'demand_mgmt_notifications', name: '通知数据' },
+    { key: 'demand_mgmt_status_log', name: '状态日志' },
+    { key: 'demand_mgmt_templates', name: '需求模板' },
+    { key: 'demand_mgmt_session', name: '登录会话' },
+];
+
+async function init() {
+    // Test CloudBase connection
+    try {
+        var app = cloudbase.init({ env: CLOUDBASE_ENV_ID });
+        var auth = app.auth();
+        if (typeof auth.signInAnonymously === 'function') {
+            await auth.signInAnonymously();
+            document.getElementById('cbStatus').className = 'status-badge on';
+            document.getElementById('cbStatus').textContent = '已连接';
+            document.getElementById('cbReason').textContent = 'CloudBase 云端同步可用';
+        }
+    } catch(e) {
+        document.getElementById('cbStatus').className = 'status-badge off';
+        document.getElementById('cbStatus').textContent = '未连接';
+        var msg = e.message || '';
+        if (msg.indexOf('login_type_disabled') >= 0 || msg.indexOf('未开启') >= 0) {
+            document.getElementById('cbReason').innerHTML = '匿名登录未开启。<a href="https://console.cloud.tencent.com/tcb/env/login" target="_blank" style="color:#0284c7;">去控制台开启</a>';
+        } else {
+            document.getElementById('cbReason').textContent = msg || '未知错误';
+        }
+    }
+
+    // Show localStorage stats
+    var tbody = document.getElementById('localDataTable').querySelector('tbody');
+    var draftCount = Object.keys(localStorage).filter(function(k){ return k.indexOf('demand_draft_') === 0; }).length;
+    var total = 0;
+    var html = '';
+    for (var i = 0; i < DATA_KEYS.length; i++) {
+        var item = DATA_KEYS[i];
+        var raw = localStorage.getItem(item.key);
+        var count = 0;
+        if (raw) {
+            try { var arr = JSON.parse(raw); count = Array.isArray(arr) ? arr.length : 1; } catch(ex) { count = 1; }
+        }
+        total += count;
+        html += '<tr><td>' + item.name + '</td><td style="font-family:monospace;font-size:12px">' + item.key + '</td><td style="font-weight:700">' + count + ' 条</td></tr>';
+    }
+    if (draftCount > 0) {
+        html += '<tr><td>表单草稿</td><td style="font-family:monospace;font-size:12px">demand_draft_*</td><td style="font-weight:700">' + draftCount + ' 条</td></tr>';
+        total += draftCount;
+    }
+    html += '<tr style="background:var(--gray-50);font-weight:700"><td colspan="2">合计</td><td>' + total + ' 条</td></tr>';
+    tbody.innerHTML = html;
+
+    document.getElementById('btnClear').disabled = (total === 0);
+}
+
+function clearAll() {
+    if (!confirm('确认清空全部本地数据？此操作不可逆！')) return;
+    if (!confirm('二次确认：真的要清空全部数据吗？')) return;
+
+    // Clear data keys
+    for (var i = 0; i < DATA_KEYS.length; i++) {
+        localStorage.removeItem(DATA_KEYS[i].key);
+    }
+    // Clear draft keys
+    Object.keys(localStorage).filter(function(k){ return k.indexOf('demand_draft_') === 0; }).forEach(function(k){ localStorage.removeItem(k); });
+
+    var result = document.getElementById('result');
+    result.className = 'result success show';
+    result.textContent = '数据已清空！即将刷新...';
+    document.getElementById('btnClear').disabled = true;
+
+    setTimeout(function(){ location.reload(); }, 1500);
+}
+
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

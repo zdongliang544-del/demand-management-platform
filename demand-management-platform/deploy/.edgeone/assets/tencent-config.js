@@ -6,6 +6,7 @@ const TENCENT_CLOUD_CONFIG = {
     collections: {
         demands: 'demands',
         reviews: 'reviews',
-        users: 'users'
+        users: 'users',
+        schedules: 'schedules'
     }
 };
